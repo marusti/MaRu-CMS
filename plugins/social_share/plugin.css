@@ -1,0 +1,18 @@
+.social-share {
+    margin-top: 1em;
+    padding: 0.5em;
+    background: #f3f3f3;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95em;
+}
+
+.social-share a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #0077cc;
+}
+
+.social-share a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,47 @@
+{
+  "images": {
+    "mime_types": [
+      "image/png",
+      "image/jpeg",
+      "image/gif",
+      "image/x-icon",
+      "image/webp"
+    ],
+    "extensions": [
+      "png",
+      "jpg",
+      "jpeg",
+      "gif",
+      "ico",
+      "webp"
+    ]
+  },
+  "general_extra": {
+    "mime_types": [
+      "text/plain",
+      "video/mp4",
+      "video/x-msvideo",
+      "video/mpeg",
+      "video/quicktime",
+      "video/x-ms-wmv",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "audio/mpeg",
+      "audio/wav",
+      "audio/x-ms-wma"
+    ],
+    "extensions": [
+      "txt",
+      "mp4",
+      "avi",
+      "mpg",
+      "mov",
+      "wmv",
+      "doc",
+      "docx",
+      "mp3",
+      "wav",
+      "wma"
+    ]
+  }
+}

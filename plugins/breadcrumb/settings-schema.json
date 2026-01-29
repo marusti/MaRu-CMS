@@ -1,0 +1,19 @@
+{
+  "fields": [
+    {
+      "key": "home_label",
+      "label": "Startseiten-Label",
+      "type": "text",
+      "value": "Startseite",
+      "placeholder": "Startseite"
+    },
+    {
+      "key": "separator",
+      "label": "Trennzeichen",
+      "type": "text",
+      "value": " / ",
+      "placeholder": "Trennzeichen zwischen Pfaden"
+    }
+  ]
+}
+

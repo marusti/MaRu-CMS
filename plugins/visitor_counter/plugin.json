@@ -1,0 +1,7 @@
+{
+    "name": "Besucherzähler",
+    "version": "1.0.0",
+    "author": "Dein Name",
+    "description": "Zählt die Besucher der Seite und zeigt optional die Anzahl an."
+}
+

@@ -1,0 +1,7 @@
+{
+  "name": "Kontaktformular",
+  "version": "1.0",
+  "author": "Dein Name",
+  "description": "Ein einfaches Kontaktformular mit E-Mail-Versand.",
+  "placeholder": "{{kontaktformular}}"
+}

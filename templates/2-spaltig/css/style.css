@@ -1,0 +1,178 @@
+/* ==============================
+   Grundlayout & Body
+============================== */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    background: #f9f9f9;
+    color: #333;
+}
+
+header, footer {
+    background: #333;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+/* ==============================
+   Hauptmenü (Hamburger Mobile)
+============================== */
+.menu-toggle {
+    display: block;
+    background: #444;
+    color: #fff;
+    border: none;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.main-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease-out;
+    background: #444;
+}
+
+.main-menu li {
+    border-bottom: 1px solid #555;
+}
+
+.main-menu li a,
+.submenu-toggle {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+}
+
+.submenu-toggle {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+/* ==============================
+   Submenu
+============================== */
+.submenu {
+    list-style: none;
+    padding-left: 1rem;
+    background: #555;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.submenu li {
+    border-bottom: 1px solid #666;
+}
+
+.submenu li a {
+    padding-left: 1rem;
+}
+
+/* ==============================
+   Zwei-Spalten-Layout
+============================== */
+main {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.content {
+    flex: 1;
+    margin-bottom: 1rem;
+}
+
+.sidebar {
+    flex: 0 0 auto;
+    margin-bottom: 1rem;
+}
+
+/* ==============================
+   Responsive Bilder
+============================== */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ==============================
+   Desktop-Layout
+============================== */
+@media (min-width: 768px) {
+    .menu-toggle {
+        display: none;
+    }
+    
+    .main-menu {
+        display: flex !important;
+        max-height: none !important;
+        flex-direction: row;
+        background: #333;
+    }
+
+    .main-menu li {
+        border-bottom: none;
+        position: relative;
+    }
+
+    .main-menu li a,
+    .submenu-toggle {
+        padding: 1rem;
+    }
+
+    .submenu {
+        position: absolute;
+        left: 0;
+        top: 100%;
+        background: #555;
+        max-height: none !important;
+        display: none;
+        min-width: 180px;
+        z-index: 1000;
+    }
+
+    .menu-item:hover > .submenu {
+        display: block;
+    }
+
+    main {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .content {
+        flex: 3;
+        margin-bottom: 0;
+    }
+
+    .sidebar {
+        flex: 1;
+        margin-bottom: 0;
+    }
+}
+
+/* ==============================
+   Footer
+============================== */
+footer p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}

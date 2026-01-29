@@ -1,0 +1,57 @@
+{
+  "fields": [
+    {
+      "key": "share_text",
+      "label": "Text für Teilen",
+      "type": "text",
+      "default": "Schau dir diese tolle Seite an!",
+      "required": false
+    },
+{
+  "key": "display_style",
+  "label": "Anzeigeformat",
+  "type": "select",
+  "options": {
+    "text": "Text",
+    "icon": "Icon"
+  },
+  "default": "text",
+  "required": true
+},
+    {
+      "key": "enable_facebook",
+      "label": "Facebook aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "enable_linkedin",
+      "label": "LinkedIn aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "enable_whatsapp",
+      "label": "WhatsApp aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "enable_bluesky",
+      "label": "Bluesky aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "enable_mastodon",
+      "label": "Mastodon aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+    "fields": [
+        {
+            "key": "show_count",
+            "label": "Besucherzahl anzeigen",
+            "type": "boolean",
+            "default": true
+        },
+        {
+            "key": "count_file",
+            "label": "Datei zur Speicherung",
+            "type": "text",
+            "default": "visitors.txt"
+        },
+        {
+            "key": "reset_code",
+            "label": "Admin-Code zum Zurücksetzen",
+            "type": "password",
+            "placeholder": "Gib einen Code ein"
+        }
+    ]
+}
+

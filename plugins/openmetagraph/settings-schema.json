@@ -1,0 +1,30 @@
+{
+  "fields": [
+    {
+      "key": "og_title",
+      "label": "Open Graph Titel",
+      "type": "text",
+      "default": "Meine Webseite"
+    },
+    {
+      "key": "og_description",
+      "label": "Open Graph Beschreibung",
+      "type": "textarea",
+      "default": "Beschreibung meiner Webseite."
+    },
+    {
+      "key": "og_image",
+      "label": "Open Graph Bild (URL)",
+      "type": "text",
+      "placeholder": "https://example.com/bild.jpg",
+      "default": ""
+    },
+    {
+      "key": "og_url",
+      "label": "Open Graph URL",
+      "type": "text",
+      "default": ""
+    }
+  ]
+}
+

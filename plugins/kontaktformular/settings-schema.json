@@ -1,0 +1,57 @@
+{
+  "fields": [
+    {
+      "key": "empfaenger",
+      "label": "Empfänger E-Mail",
+      "type": "text",
+      "placeholder": "E-Mail-Adresse für Kontaktformular",
+      "default": "info@example.com",
+      "required": false
+    },
+    {
+      "key": "standard_betreff",
+      "label": "Standard Betreff",
+      "type": "text",
+      "default": "Kontaktformular",
+      "required": false
+    },
+    {
+      "key": "erfolgsmeldung",
+      "label": "Erfolgsmeldung",
+      "type": "text",
+      "default": "Vielen Dank für Ihre Nachricht!",
+      "required": false
+    },
+    {
+      "key": "fehlermeldung",
+      "label": "Fehlermeldung",
+      "type": "text",
+      "default": "Ein Fehler ist aufgetreten.",
+      "required": false
+    },
+    {
+      "key": "enable_copy_to_sender",
+      "label": "Kopie an mich senden aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "enable_honeypot",
+      "label": "Honeypot aktivieren",
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    {
+      "key": "datenschutzseite",
+      "label": "Seite für Datenschutzerklärung",
+      "type": "select",
+      "options_source": "pages",
+      "required": true
+    }
+
+
+
+  ]
+}

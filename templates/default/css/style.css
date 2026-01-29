@@ -1,0 +1,268 @@
+/* =========================
+   CSS Variablen (Design-Tokens)
+   ========================= */
+:root {
+    /* Farben */
+    --color-bg: #f9f9f9;
+    --color-primary: #3498db;
+    --color-primary-dark: #2980b9;
+    --color-header-bg: #2c3e50;
+    --color-header-border: #34495e;
+    --color-text: #333;
+    --color-white: #ffffff;
+    --color-submenu-hover: #ecf0f1;
+
+    /* Schriftgrößen */
+    --font-base: 1em;
+    --font-small: 0.9em;
+    --font-medium: 1.8em;
+    --font-large: 2.5em;
+
+    /* Abstände */
+    --spacing-sm: 10px;
+    --spacing-md: 20px;
+    --spacing-lg: 30px;
+    --spacing-xl: 40px;
+
+    /* Radius & Schatten */
+    --radius: 8px;
+    --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   Basis-Reset & Layout
+   ========================= */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =========================
+   Header & Footer
+   ========================= */
+header,
+footer {
+    background-color: var(--color-header-bg);
+    color: var(--color-white);
+    padding: 1em;
+    text-align: center;
+}
+
+header {
+    border-bottom: 2px solid var(--color-header-border);
+}
+
+header h1 {
+    font-size: var(--font-medium);
+}
+
+footer {
+    font-size: var(--font-small);
+}
+
+/* =========================
+   Hauptinhalt
+   ========================= */
+main {
+    flex: 1;
+    background-color: var(--color-white);
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* =========================
+   Buttons
+   ========================= */
+button {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-base);
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+button:focus {
+    background-color: var(--color-primary-dark);
+    outline: none;
+}
+
+/* =========================
+   Button-Container
+   ========================= */
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-top: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* =========================
+   Navigation
+   ========================= */
+nav {
+    margin-top: 1em;
+}
+
+.main-menu {
+    list-style: none;
+}
+
+.menu-item {
+    margin-bottom: 10px;
+}
+
+.submenu-toggle {
+    width: 100%;
+    text-align: left;
+}
+
+.submenu {
+    list-style: none;
+    margin-top: 5px;
+    padding-left: 1em;
+}
+
+.submenu a {
+    display: block;
+    padding: 5px 10px;
+    color: var(--color-header-bg);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.submenu a:hover {
+    background-color: var(--color-submenu-hover);
+    border-left-color: var(--color-primary);
+}
+
+img {max-width: 100%; height: auto
+}
+
+/* Allgemeine Navigation */
+.sitemap-nav {
+
+}
+
+/* Hauptliste */
+.sitemap-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Gruppenelement (Kategorie) */
+.sitemap-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Kategorienamen */
+.sitemap-group-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.25rem;
+}
+
+/* Unterliste der Links */
+.sitemap-sublist {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+/* Einzelelement */
+.sitemap-item {
+    margin: 0.25rem 0;
+}
+
+/* Link */
+.sitemap-link {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.sitemap-link:hover,
+.sitemap-link:focus {
+    color: #004999;
+    text-decoration: underline;
+}
+
+/* Fehlermeldung */
+.sitemap-error {
+    color: red;
+    font-weight: bold;
+    background: #ffe6e6;
+    padding: 0.5rem;
+    border: 1px solid #ffcccc;
+    border-radius: 5px;
+}
+
+
+/* =========================
+   Media Queries
+   ========================= */
+@media (min-width: 768px) {
+    body {
+        padding: var(--spacing-lg);
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    main {
+        padding: var(--spacing-lg);
+    }
+
+    .btn-container {
+        justify-content: flex-start;
+    }
+}
+
+@media (min-width: 1024px) {
+    body {
+        padding: var(--spacing-xl);
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    header h1 {
+        font-size: var(--font-large);
+    }
+
+    footer {
+        font-size: var(--font-base);
+    }
+
+    main {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .btn-container {
+        justify-content: space-between;
+    }
+}

@@ -1,0 +1,39 @@
+{
+  "fields": [
+    {
+      "key": "message",
+      "label": "Nachricht",
+      "type": "textarea",
+      "default": "Wir verwenden Cookies, um dir das beste Erlebnis zu bieten. Mehr Infos findest du in unserer <a href=\"{{privacy_url}}\" target=\"_blank\" rel=\"noopener\">Datenschutzerklärung</a>.",
+      "placeholder": "Cookie Hinweis Text mit {{privacy_url}} als Platzhalter für den Link"
+    },
+    {
+      "key": "privacy_url",
+            "label": "Seite für Datenschutzerklärung",
+      "type": "select",
+      "options_source": "pages",
+      "required": true
+    },
+    {
+      "key": "button_accept_text",
+      "label": "Button Text Akzeptieren",
+      "type": "text",
+      "default": "Akzeptieren",
+      "placeholder": "Text für den Akzeptieren-Button"
+    },
+    {
+      "key": "button_reject_text",
+      "label": "Button Text Ablehnen",
+      "type": "text",
+      "default": "Ablehnen",
+      "placeholder": "Text für den Ablehnen-Button"
+    },
+    {
+      "key": "cookie_duration_days",
+      "label": "Cookie Dauer in Tagen",
+      "type": "number",
+      "default": 365,
+      "placeholder": "Wie viele Tage soll das Cookie gültig sein?"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+    "message": "Wir verwenden Cookies, um dir das beste Erlebnis zu bieten. Mehr Infos findest du in unserer <a href=\"{{privacy_url}}\" target=\"_blank\" rel=\"noopener\">Datenschutzerkl\u00e4rung</a>.",
+    "privacy_url": "erste/erste-seite",
+    "button_accept_text": "Akzeptieren",
+    "button_reject_text": "Ablehnen",
+    "cookie_duration_days": "1"
+}

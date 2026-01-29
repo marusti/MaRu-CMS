@@ -1,0 +1,5 @@
+﻿bei row und col classes einfügen oder section als workaround ---------- 
+moziloCMS - Das CMS für Einsteiger!
+
+Download moziloCMSGithub
+button: align-items: center; section einfügen für erstes div mit bg main und andere grau siehe original main breite entfernen und bei sections einfügen background: var(--main-color); padding: 0 10rem; generell: /2 löschen in cssonly by 36rem ------------ cards ----------- Anleitung kann Video-Tutorials nach Editor verschoben werden? ------- Unterstützung ---------- Sitemap stylen .sitemap a:link {text-decoration:none} .sitemap ul {list-style:none} .sitemap ul ul {padding-left: calc(var(--main-padding)*2)} und vielleicht border zum besseren gruppieren ---- keywords installieren und ausfüllen...auf CMS ohne Datenbank optimieren css von menusub umbenennen ------- Konfig: meta author löschen ----- css only import versuchen -------- page name installieren https://www.mozilo.de/forum/index.php/topic,3968.msg20236.html#msg20236 ----------- SEO https://www.mozilo.de/forum/index.php/topic,1442.0.html 

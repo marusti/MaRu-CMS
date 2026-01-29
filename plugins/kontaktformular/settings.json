@@ -1,0 +1,9 @@
+{
+    "empfaenger": "info@example.com",
+    "standard_betreff": "Kontaktformular",
+    "erfolgsmeldung": "Vielen Dank f\u00fcr Ihre Nachricht!",
+    "fehlermeldung": "Ein Fehler ist aufgetreten.",
+    "enable_copy_to_sender": "1",
+    "enable_honeypot": "1",
+    "datenschutzseite": "erste/erste-seite"
+}

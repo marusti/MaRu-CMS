@@ -1,0 +1,21 @@
+{
+    "thumb_width": 500,
+    "thumb_height": 200,
+    "homepage": "erste/erste-seite",
+    "language": "de",
+    "site_name": "Meine Webseite",
+    "template": "default",
+    "maintenance": false,
+    "base_url": "http://localhost/dev/chatgp/flatfile",
+    "plugins": [
+        "breadcrumb",
+        "cookieconsent",
+        "kontaktformular",
+        "openmetagraph",
+        "social_share",
+        "visitor_counter"
+    ],
+    "generate_sitemap": true,
+    "mod_rewrite": true,
+    "cms_path": "/var/www/html/dev/chatgp/flatfile"
+}
