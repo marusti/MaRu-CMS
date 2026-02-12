@@ -1,0 +1,48 @@
+<?php
+// plugins/social_share/plugins.php
+
+function plugin_output_social_share() {
+    // Einstellungen laden
+    $settingsPath = __DIR__ . '/../../config/settings.json';
+    $settings = file_exists($settingsPath) ? json_decode(file_get_contents($settingsPath), true) : [];
+
+    $pluginSettings = $settings['social_share'] ?? [];
+
+    if (empty($pluginSettings['enabled'])) {
+        return '';
+    }
+
+    $shareText = rawurlencode($pluginSettings['share_text'] ?? 'Schau dir diese tolle Seite an!');
+
+    $baseUrl = rtrim($settings['base_url'] ?? '', '/');
+
+    if (!empty($_GET['page'])) {
+        $pagePath = trim($_GET['page'], '/');
+        if ($baseUrl !== '') {
+            if (!empty($settings['mod_rewrite'])) {
+                $currentUrl = $baseUrl . '/' . $pagePath;
+            } else {
+                $currentUrl = $baseUrl . '/index.php?page=' . rawurlencode($pagePath);
+            }
+        } else {
+            $currentUrl = $_SERVER['REQUEST_URI'];
+        }
+    } else {
+        $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+            . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    }
+
+    $encodedUrl = rawurlencode($currentUrl);
+
+    $html = <<<HTML
+<div class="social-share" role="region" aria-label="Social Share">
+  <strong>Seite teilen:</strong>
+  <a href="https://www.facebook.com/sharer/sharer.php?u={$encodedUrl}" target="_blank" rel="noopener noreferrer" aria-label="Auf Facebook teilen">Facebook</a> |
+  <a href="https://twitter.com/intent/tweet?url={$encodedUrl}&text={$shareText}" target="_blank" rel="noopener noreferrer" aria-label="Auf Twitter teilen">Twitter</a> |
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url={$encodedUrl}" target="_blank" rel="noopener noreferrer" aria-label="Auf LinkedIn teilen">LinkedIn</a>
+</div>
+HTML;
+
+
+    return ob_get_clean();
+}

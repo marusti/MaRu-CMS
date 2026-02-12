@@ -22,7 +22,7 @@ foreach ($categories as $cat) {
 }
 
 if (!$category) {
-    header('Location: content_manager.php?message=' . urlencode(__('category_not_found')));
+    header('Location: manage_categories.php?message=' . urlencode(__('category_not_found')));
     exit;
 }
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         file_put_contents($file, json_encode($categories, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-        header('Location: content_manager.php?message=' . urlencode(__('category_renamed_successfully')));
+        header('Location: manage_categories.php?message=' . urlencode(__('category_renamed_successfully')));
         exit;
     }
 }
@@ -109,7 +109,7 @@ ob_start();
         <button type="submit"><?= __('save_changes') ?></button>
     </form>
 
-    <p><a href="content_manager.php">⬅ <?= __('back_to_overview') ?></a></p>
+    <p><a href="manage_categories.php">⬅ <?= __('back_to_overview') ?></a></p>
 </div>
 
 <?php

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/assets/icons/icons.php'; 
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
@@ -14,6 +15,9 @@ if (!isset($_SESSION['admin'])) {
 $settingsFile = __DIR__ . '/../config/settings.json';
 $settings = file_exists($settingsFile) ? json_decode(file_get_contents($settingsFile), true) : [];
 $activePlugins = $settings['plugins'] ?? [];
+
+// Lade die Icons
+
 
 // Kategorien laden
 $categoriesFile = __DIR__ . '/../content/categories.json';
@@ -105,31 +109,64 @@ ob_start();
         </label>
 
         <!-- Toolbar -->
-        <!-- Toolbar -->
-<div id="toolbar" class="md-toolbar">
-    <button type="button" data-cmd="bold">B</button>
-    <button type="button" data-cmd="italic">I</button>
-    <button type="button" data-cmd="underline">U</button>
-    <button type="button" data-cmd="h1">H1</button>
-    <button type="button" data-cmd="h2">H2</button>
-    <button type="button" data-cmd="h3">H3</button>
-    <button type="button" data-cmd="h4">H4</button>
-    <button type="button" data-cmd="h5">H5</button>
-    <button type="button" data-cmd="h6">H6</button>
-
-    <button type="button" data-cmd="ul">UL</button>
-    <button type="button" data-cmd="ol">OL</button>
-    <button type="button" data-cmd="quote">❝</button>
-    <button type="button" data-cmd="code">{"</>"}</button>
-    <button type="button" data-cmd="link">🔗</button>
-    <button type="button" data-cmd="image">🖼</button>
-    <button type="button" data-cmd="undo">↶</button>
-    <button type="button" data-cmd="redo">↷</button>
-
-    <!-- Neue Buttons -->
-    <button type="button" data-cmd="div">DIV</button>
-    <button type="button" data-cmd="p">P</button>
+        <div id="toolbar" class="md-toolbar">
+    <button type="button" data-cmd="bold">
+        <?php echo getIcon('bold'); ?>
+    </button>
+    <button type="button" data-cmd="italic">
+        <?php echo getIcon('italic'); ?>
+    </button>
+    <button type="button" data-cmd="underline">
+        <?php echo getIcon('underline'); ?>
+    </button>
+    <button type="button" data-cmd="h1">
+        <?php echo getIcon('h1'); ?>
+    </button>
+    <button type="button" data-cmd="h2">
+        <?php echo getIcon('h2'); ?>
+    </button>
+    <button type="button" data-cmd="h3">
+        <?php echo getIcon('h3'); ?>
+    </button>
+    <button type="button" data-cmd="h4">
+        <?php echo getIcon('h4'); ?>
+    </button>
+    <button type="button" data-cmd="h5">
+        <?php echo getIcon('h5'); ?>
+    </button>
+    <button type="button" data-cmd="h6">
+        <?php echo getIcon('h6'); ?>
+    </button>
+    <button type="button" data-cmd="ul">
+        <?php echo getIcon('ul'); ?>
+    </button>
+    <button type="button" data-cmd="quote">
+        <?php echo getIcon('quote'); ?>
+    </button>
+    <button type="button" data-cmd="code">
+        <?php echo getIcon('code'); ?>
+    </button>
+    <button type="button" data-cmd="link">
+        <?php echo getIcon('link'); ?>
+    </button>
+    <button type="button" data-cmd="image">
+        <?php echo getIcon('image'); ?>
+    </button>
+    <button type="button" data-cmd="undo">
+        <?php echo getIcon('undo'); ?>
+    </button>
+    <button type="button" data-cmd="redo">
+        <?php echo getIcon('redo'); ?>
+    </button>
+    <button type="button" data-cmd="div">
+        <?php echo getIcon('div'); ?>
+    </button>
+    <button type="button" data-cmd="p">
+        <?php echo getIcon('p'); ?>
+    </button>
 </div>
+
+
 
 
         <div id="editor-wrapper">
@@ -165,20 +202,23 @@ ob_start();
 
     <!-- TAB: Default Image -->
     <div id="tab-image" class="tab-content">
-        <label><?= __('default_image_url') ?>:
-            <input type="text" id="default_image" name="default_image" value="<?= htmlspecialchars($data['default_image']) ?>">
-            <button type="button" id="selectImageBtn">📁</button>
+    <label><?= __('default_image_url') ?>:
+        <input type="text" id="default_image" name="default_image" value="<?= htmlspecialchars($data['default_image']) ?>">
+        <!-- Verwende das Ordnersymbol aus der getIcon-Funktion -->
+        <button type="button" id="selectImageBtn">
+            <?php echo getIcon('folder'); ?> <!-- SVG Ordnersymbol -->
+        </button>
+    </label>
 
-        </label>
+    <label><?= __('default_image_alt_text') ?>:
+        <input type="text" id="default_image_alt" name="default_image_alt" value="<?= htmlspecialchars($data['default_image_alt']) ?>">
+    </label>
 
-        <label><?= __('default_image_alt_text') ?>:
-            <input type="text" id="default_image_alt" name="default_image_alt" value="<?= htmlspecialchars($data['default_image_alt']) ?>">
-        </label>
-
-        <div style="margin-top:10px;">
-            <img id="imagePreview" src="<?= htmlspecialchars($data['default_image']) ?>" style="max-width:100%; max-height:200px; <?= empty($data['default_image'])?'display:none;':'' ?>">
-        </div>
+    <div style="margin-top:10px;">
+        <img id="imagePreview" src="<?= htmlspecialchars($data['default_image']) ?>" style="max-width:100%; max-height:200px; <?= empty($data['default_image'])?'display:none;':'' ?>">
     </div>
+</div>
+
 
     <div class="button-row">
         <button type="submit" name="action" value="save"><?= __('save') ?></button>

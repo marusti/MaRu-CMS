@@ -48,14 +48,41 @@ class CMS_Editor {
   }
 
   // Haupt-Wrap-Methode für [key|Text]
-  // Haupt-Wrap-Methode für [key|Text]
 wrap(key, inner = '') {
   const s = this.getSelection();  // Auswahl des Textes im Editor
+  const selectedText = s.value.substring(s.start, s.end);  // Den markierten Text holen
 
-  // Einfügen des Markups
-  const formattedText = `[${key}|${inner}]`;
-  this.replace(s.start, s.end, formattedText);  // Ersetze den markierten Text oder füge das Markup ein
+  // Prüfen, ob der markierte Text bereits innerhalb des gewünschten Markups liegt
+  const regex = new RegExp(`\\[${key}\\|([\\s\\S]*?)\\]`);
+  if (regex.test(selectedText)) {
+    // Wenn der markierte Text bereits formatiert ist, nichts tun
+    return;
+  }
+
+  // Wenn Text markiert wurde, das Markup mit dem Text setzen
+  let formattedText = '';
+  if (selectedText) {
+    formattedText = `[${key}|${selectedText}]`;  // Markup mit dem ausgewählten Text
+  } else {
+    formattedText = `[${key}|${inner}]`;  // Markup ohne Text (Platzhalter)
+  }
+
+  // Text im Editor ersetzen (und den markierten Text durch das Markup ersetzen)
+  this.replace(s.start, s.end, formattedText);
+
+  // Den Cursor vor das `]` setzen
+  const newPos = s.start + formattedText.length - 1;  // Setzt den Cursor vor das schließende `]`
+  this.el.selectionStart = newPos;
+  this.el.selectionEnd = newPos;
+
+  // Fokus beibehalten
+  this.el.focus();
+
+  this.saveHistory();
+  this.updatePreview();
 }
+
+
 
 
 

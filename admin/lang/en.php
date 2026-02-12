@@ -89,6 +89,8 @@ return [
     'category_exists_error' => 'A category with this name/slug already exists.',
     'category_not_found' => 'Category not found.',
     'category_renamed_successfully' => 'Category renamed successfully.',
+    'delete_category' => 'Delete Category',
+
 
     'edit_page' => 'Edit page',
     'create_page' => 'Create page',
@@ -225,6 +227,26 @@ return [
     'activate_selected' => 'Activate selected template',
     'search_templates' => 'Search templates',
     'search_templates_placeholder' => 'Enter template name or description...',
+'select_template' => 'Select template',
+
+    'zip_target_create_failed' => 'Failed to create target directory.',
+    'zip_target_invalid' => 'Target directory is invalid.',
+    'zip_too_many_entries' => 'ZIP contains too many entries.',
+    'zip_read_error' => 'Error reading ZIP entries.',
+    'zip_null_byte' => 'ZIP contains null bytes in path.',
+    'zip_absolute_path' => 'Absolute paths in ZIP are not allowed.',
+    'zip_drive_letter' => 'Drive letters in ZIP paths are not allowed.',
+    'zip_path_traversal' => 'Path contains invalid traversal.',
+    'zip_stat_error' => 'Invalid ZIP file metadata.',
+    'zip_symlink' => 'Symbolic links in ZIP are not allowed.',
+    'zip_file_too_large' => 'A file in the ZIP exceeds the allowed size.',
+    'zip_total_too_large' => 'The total size of the ZIP exceeds the limit.',
+    'zip_stream_open_failed' => 'Could not open ZIP file stream.',
+    'zip_write_failed' => 'Failed to write target file.',
+    'zip_read_block_error' => 'Error reading from ZIP.',
+    'zip_file_limit_exceeded' => 'File exceeds size limit during extraction.',
+    'zip_write_block_error' => 'Error writing to target file.',
+    'zip_success' => 'ZIP successfully extracted.',
 
     'plugin_manager' => 'Plugin management',
     'plugin_settings_saved' => 'Plugin settings saved.',
@@ -242,4 +264,13 @@ return [
     'settings' => 'Settings',
     'delete' => 'Delete',
     'select_zip_first' => 'Please select a ZIP file.',
+     'select_plugins_to_activate' => 'Select plugins to activate',
+      'search_plugins' => 'Search plugins',
+      'search_plugins_placeholder' => 'Enter plugin name...',
+    
+    // Update check / system
+'update_check_unavailable' => 'Update check not available (cURL is not enabled on this server).',
+'update_check_failed' => 'Update check failed (GitHub could not be reached).',
+'update_no_version_found' => 'Error: No version number found in cms.json!',
+
 ];

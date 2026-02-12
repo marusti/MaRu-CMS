@@ -85,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$lockActive) {
 <head>
     <meta charset="UTF-8">
     <title><?= __('login_title') ?></title>
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/login.css">
 </head>

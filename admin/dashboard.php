@@ -12,23 +12,6 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-// Funktion: Aktuelle Base-URL ermitteln (mit /admin Entfernen)
-function get_current_base_url() {
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-    $scriptDir = rtrim(dirname($scriptName), '/\\');
-
-    if (substr($scriptDir, -6) === '/admin') {
-        $scriptDir = substr($scriptDir, 0, -6);
-    }
-
-    return $protocol . '://' . $host . $scriptDir . '/';
-}
-
-function normalize_url($url) {
-    return strtolower(rtrim(trim($url), '/'));
-}
 
 // Settings laden (angenommen $settings ist ein Array mit deiner config)
 $settingsFile = __DIR__ . '/../config/settings.json';
@@ -53,21 +36,45 @@ $writableChecks = [
 ];
 
 function check_for_updates() {
+
+    // cURL fehlt → Meldung statt Fatal Error
     if (!function_exists('curl_init')) {
-        return "Update-Check nicht möglich: cURL ist nicht verfügbar.";
+        return __('update_check_unavailable');
     }
 
-    $url = 'https://api.example.com/latest-version';
+    $cmsInfo = load_cms_info();
+
+    if (!isset($cmsInfo['version'])) {
+        return __('update_no_version_found');
+    }
+
+    $currentVersion = $cmsInfo['version'];
+    $url = 'https://api.github.com/repos/marusti/MaRu-CMS/releases/latest';
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'MaRu-CMS Update Check');
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 
-    if ($response) {
-        $data = json_decode($response, true);
-        return $data['latest_version'] ?? null;
+    $response = curl_exec($ch);
+
+    if ($response === false) {
+        return __('update_check_failed');
     }
+
+    $data = json_decode($response, true);
+
+    if (!isset($data['tag_name'])) {
+        return null;
+    }
+
+    $latestVersion = ltrim($data['tag_name'], 'v');
+
+    if (version_compare($currentVersion, $latestVersion, '<')) {
+        return $latestVersion;
+    }
+
     return null;
 }
 
@@ -80,7 +87,7 @@ if (!$phpVersionOk) {
     <div class="card error">
         <h2><?= __('php_too_old') ?></h2>
         <p><?= sprintf(__('php_required'), $minVersion) ?></p>
-        <p><?= __('php_current') ?> <strong><?= PHP_VERSION ?></strong></p>
+        <p><?= __('php_current') ?> <?= PHP_VERSION ?></p>
     </div>
     <?php
     $content = ob_get_clean();
@@ -88,31 +95,9 @@ if (!$phpVersionOk) {
     exit;
 }
 
-// Base URL ermitteln und vergleichen
-$currentBaseUrl = get_current_base_url();
 
-$storedBaseUrlNormalized = normalize_url($settings['base_url'] ?? '');
-$currentBaseUrlNormalized = normalize_url($currentBaseUrl);
 
-$baseUrlMismatch = ($storedBaseUrlNormalized !== $currentBaseUrlNormalized);
 
-$saveError = '';
-
-// Formular zum Speichern der neuen Base-URL verarbeiten
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_POST['new_base_url'])) {
-    $newBaseUrl = trim($_POST['new_base_url']);
-
-    $settings['base_url'] = $newBaseUrl;
-
-    if (is_writable($settingsFile)) {
-        file_put_contents($settingsFile, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-        // Nach Speichern neu laden
-        header('Location: ' . $_SERVER['REQUEST_URI']);
-        exit;
-    } else {
-        $saveError = __('error_writing_settings');
-    }
-}
 
 
 
@@ -144,23 +129,7 @@ ob_start();
 
    <h1><?= sprintf(__('welcome'), htmlspecialchars($_SESSION['admin'])) ?></h1>
 
-<div class="dashboard">
-
-    <?php if ($baseUrlMismatch): ?>
-        <form method="post" class="warning baseurl-warning">
-            <strong><?= __('warning') ?>:</strong>
-            <span><?= __('base_url_mismatch') ?></span><br>
-            <input type="hidden" name="new_base_url" value="<?= htmlspecialchars($currentBaseUrl) ?>">
-            <button type="submit" name="save_base_url"><?= __('update_base_url_to_current') ?></button>
-            <?php if ($saveError): ?>
-                <div class="error" style="color:red; margin-top:0.5em;">
-                    <?= htmlspecialchars($saveError) ?>
-                </div>
-            <?php endif; ?>
-        </form>
-    <?php endif; ?>
-
- 
+<div class="dashboard"> 
 
     <section class="cms-info">
         <h2><?= __('cms_info') ?></h2>
@@ -198,11 +167,11 @@ ob_start();
     </section>
 
     <section class="server">
-    <h2><?= __('server') ?></h2>
+    <div class="section-header"><?= __('server') ?></div>
     <ul>
         <li>
             <strong><?= __('php_version') ?></strong> 
-            <span class="php-version status <?= $phpVersionOk ? 'green' : 'red' ?>">
+            <span class="status <?= $phpVersionOk ? 'green' : 'red' ?>">
                 <?= PHP_VERSION ?>
             </span>
         </li>

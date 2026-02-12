@@ -11,7 +11,7 @@ if (!isset($_SESSION['admin'])) {
 $id = $_GET['id'] ?? '';
 if (empty($id)) {
     // Fehlerbehandlung, falls keine ID übergeben wurde
-    header('Location: content_manager.php?message=' . urlencode('Category ID is missing.'));
+    header('Location: manage_categories.php?message=' . urlencode('Category ID is missing.'));
     exit;
 }
 
@@ -19,7 +19,7 @@ if (empty($id)) {
 $file = __DIR__ . '/../content/categories.json';
 if (!file_exists($file)) {
     // Fehlerbehandlung, falls die Datei nicht existiert
-    header('Location: content_manager.php?message=' . urlencode('Categories file not found.'));
+    header('Location: manage_categories.php?message=' . urlencode('Categories file not found.'));
     exit;
 }
 
@@ -27,7 +27,7 @@ if (!file_exists($file)) {
 $categories = json_decode(file_get_contents($file), true);
 if ($categories === null) {
     // Fehlerbehandlung, falls das JSON-Dekodieren fehlschlägt
-    header('Location: content_manager.php?message=' . urlencode('Failed to decode categories.'));
+    header('Location: manage_categories.php?message=' . urlencode('Failed to decode categories.'));
     exit;
 }
 
@@ -45,7 +45,7 @@ $queryParams['message'] = 'Category deleted successfully'; // Erfolgsnachricht h
 
 // Die Weiterleitung zur ursprünglichen Seite mit allen Parametern
 // Verwendet $_SERVER['QUERY_STRING'], um die URL-Parameter korrekt zu übernehmen
-$redirectUrl = 'content_manager.php?' . http_build_query($queryParams);
+$redirectUrl = 'manage_categories.php?' . http_build_query($queryParams);
 
 // Weiterleiten
 header('Location: ' . $redirectUrl);

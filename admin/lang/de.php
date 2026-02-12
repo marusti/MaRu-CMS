@@ -1,6 +1,9 @@
 <?php
 return [
 
+'yes' => 'Ja',
+'no' => 'Nein',
+
 'go_to_page' => 'Gehe zu Seite',
 
     'login_title' => 'Login',
@@ -23,6 +26,7 @@ return [
     
     'dashboard' => 'Dashboard',
     'content' => 'Inhalt',
+    'categories'  => 'Kategorien',
     'filemanager' => 'Dateien',
 'gallery_admin' => 'Galerien',
     'users' => 'Benutzer',
@@ -93,10 +97,12 @@ return [
 'category_exists_error' => 'Eine Kategorie mit diesem Namen/Slug existiert bereits.',
 'category_not_found' => 'Kategorie nicht gefunden.',
 'category_renamed_successfully' => 'Kategorie erfolgreich umbenannt.',
+'delete_category' => 'Kategorie löschen',
 
     
          'edit_page' => 'Seite bearbeiten',
     'create_page' => 'Seite erstellen',
+    'existing_pages' => 'Vorhandene Seiten',
     'title' => 'Titel',
     'id' => 'ID',
     'category' => 'Kategorie',
@@ -234,6 +240,26 @@ return [
     'activate_selected' => 'Ausgewähltes Template aktivieren',
 'search_templates' => 'Vorlagen suchen',
 'search_templates_placeholder' => 'Template-Name oder Beschreibung eingeben...',
+'select_template' => 'Template auswählen',
+
+    'zip_target_create_failed' => 'Zielverzeichnis konnte nicht erstellt werden.',
+    'zip_target_invalid' => 'Zielverzeichnis ist ungültig.',
+    'zip_too_many_entries' => 'ZIP enthält zu viele Einträge.',
+    'zip_read_error' => 'Fehler beim Lesen der ZIP-Einträge.',
+    'zip_null_byte' => 'ZIP enthält Null-Bytes im Pfad.',
+    'zip_absolute_path' => 'Absolute Pfade in ZIP nicht erlaubt.',
+    'zip_drive_letter' => 'Laufwerksangaben nicht erlaubt.',
+    'zip_path_traversal' => 'Pfad enthält unzulässige Navigation.',
+    'zip_stat_error' => 'Fehlerhafte ZIP-Metadaten.',
+    'zip_symlink' => 'Symbolische Links sind im ZIP nicht erlaubt.',
+    'zip_file_too_large' => 'Eine Datei im ZIP überschreitet die erlaubte Größe.',
+    'zip_total_too_large' => 'Gesamtgröße des ZIP überschreitet das Limit.',
+    'zip_stream_open_failed' => 'Dateistream aus ZIP konnte nicht geöffnet werden.',
+    'zip_write_failed' => 'Zieldatei konnte nicht geschrieben werden.',
+    'zip_read_block_error' => 'Fehler beim Lesen aus ZIP.',
+    'zip_file_limit_exceeded' => 'Datei überschreitet Größenlimit beim Entpacken.',
+    'zip_write_block_error' => 'Fehler beim Schreiben der Zieldatei.',
+    'zip_success' => 'ZIP erfolgreich extrahiert.',
 
     
     
@@ -253,5 +279,14 @@ return [
     'settings' => 'Einstellungen',
     'delete' => 'Löschen',
     'select_zip_first' => 'Bitte eine ZIP-Datei auswählen.',
+      'select_plugins_to_activate' => 'Plugins auswählen',
+      'search_plugins' => 'Plugins suchen',
+      'search_plugins_placeholder' => 'Name eines Plugins eingeben...',
+    
+    // Update-Check / System
+'update_check_unavailable' => 'Updateprüfung nicht möglich (cURL ist auf diesem Server nicht aktiviert).',
+'update_check_failed' => 'Updateprüfung fehlgeschlagen (GitHub nicht erreichbar).',
+'update_no_version_found' => 'Fehler: Keine Versionsnummer in der cms.json gefunden!',
+
     
 ];

@@ -5,6 +5,7 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/assets/icons/icons.php'; 
 
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
@@ -199,6 +200,7 @@ ob_start();
             multiple
             accept="<?= htmlspecialchars($acceptedExtAttr) ?>"
             hidden
+            aria-label="Choose a file"
         >
     </div>
 
@@ -246,98 +248,61 @@ foreach ($files as $filePath):
         $fileTypeAttr = 'other';
     }
 
-    if ($fileTypeAttr === 'image') {
-        $thumb = '<img src="' . htmlspecialchars($fileUrl) . '" 
-                        alt="' . htmlspecialchars($altTexts[$fileName] ?? '') . '" 
-                        data-caption="' . htmlspecialchars($captions[$fileName] ?? '') . '" 
-                        loading="lazy" 
-                        style="max-width:100px; max-height:100px; cursor:pointer;" 
-                        class="preview-trigger">';
-        $dataAlt = htmlspecialchars($altTexts[$fileName] ?? '');
-        $dataCaption = htmlspecialchars($captions[$fileName] ?? '');
-    } elseif ($fileTypeAttr === 'text') {
-        $thumb = '<div class="file-icon preview-trigger" style="cursor:pointer;">TXT: ' . htmlspecialchars($fileName) . '</div>';
-        $dataAlt = '';
-        $dataCaption = '';
-    } else {
-        $thumb = '<div class="file-icon">' . htmlspecialchars($fileName) . '</div>';
-        $dataAlt = '';
-        $dataCaption = '';
-    }
-?>
-    <div class="file-item" title="<?= htmlspecialchars($fileName) ?>" 
-         data-type="<?= $fileTypeAttr ?>" 
-         data-url="<?= htmlspecialchars($fileUrl) ?>"
-         data-alt="<?= $dataAlt ?>"
-         data-caption="<?= $dataCaption ?>"
-         tabindex="0"
-         role="group"
-         aria-label="Datei <?= htmlspecialchars($fileName) ?>">
+$ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-        <?php if (!$selectMode): ?>
-        <input type="checkbox"
+$iconMap = [
+    'jpg'  => 'image',
+    'jpeg' => 'image',
+    'png'  => 'image',
+    'gif'  => 'image',
+    'webp' => 'image',
+    'txt'  => 'txt',
+    'pdf'  => 'pdf',
+    'zip'  => 'zip',
+    'rar'  => 'zip',
+];
+
+$iconName = $iconMap[$ext] ?? 'file';
+$iconSvg  = getIcon($iconName);
+
+$thumb = '<div class="file-icon preview-trigger" style="cursor:pointer;">' . $iconSvg . '</div>';
+
+// Alt + Caption nur für Bilder
+$dataAlt = $iconName === 'image' ? htmlspecialchars($altTexts[$fileName] ?? '') : '';
+$dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? '') : '';
+
+?>
+    <div class="maru-card file-item"
+     data-type="<?= in_array($iconName, ['txt', 'pdf', 'zip']) ? 'text' : $iconName ?>" 
+     data-url="<?= htmlspecialchars($fileUrl) ?>"
+     data-alt="<?= $dataAlt ?>"
+     data-caption="<?= $dataCaption ?>"
+     tabindex="0"
+     role="group"
+     aria-label="Datei <?= htmlspecialchars($fileName) ?>">
+
+
+    
+
+    <div class="preview-trigger"
+         role="button"
+         tabindex="0"
+         aria-label="Vorschau für <?= htmlspecialchars($fileName) ?> öffnen">
+        <?= $thumb ?>
+    </div>
+
+    <div class="filename"><?= htmlspecialchars($fileName) ?></div>
+<?php if (!$selectMode): ?>
+    <input type="checkbox"
        name="delete_files[]"
        value="<?= htmlspecialchars(str_replace(realpath($uploadBase) . '/', '', $filePath)) ?>"
        class="delete-checkbox"
        aria-label="Datei <?= htmlspecialchars($fileName) ?> zum Löschen auswählen">
+    <?php endif; ?>
+</div>
 
-
-
-        <?php endif; ?>
-
-        <div class="preview-trigger"
-             role="button"
-             tabindex="0"
-             aria-label="Vorschau für <?= htmlspecialchars($fileName) ?> öffnen">
-            <?= $thumb ?>
-        </div>
-
-        <div class="filename"><?= htmlspecialchars($fileName) ?></div>
-    </div>
 <?php endforeach; ?>
 </div>
-
-
-
-
-
-<dialog id="imagePreviewDialog" class="modal">
-    <button id="closeDialog" class="close-btn" aria-label="Schließen">✖</button>
-    <div class="dialog-content">
-    <div class="image-container">
-        <img src="" alt="" id="previewImage" class="preview-img" style="display:none;">
-        <pre id="previewText" style="display:none; white-space: pre-wrap;"></pre>
-    </div>
-    <div class="info-panel">
-        <p><strong>Name:</strong> <span id="fileName"></span></p>
-        <p><strong>Größe:</strong> <span id="fileSize"></span></p>
-        <p><strong>Abmessungen:</strong> <span id="fileDimensions"></span></p>
-
-        <!-- Labels + Inputs + Button für Bilder -->
-        <div id="imageMeta" style="display:none;">
-            <label for="altTextInput"><strong>Alt-Text:</strong></label>
-            <input type="text" id="altTextInput" placeholder="Alt-Text hier eingeben">
-            <label for="captionInput"><strong>Bildunterschrift:</strong></label>
-            <input type="text" id="captionInput" placeholder="Bildunterschrift eingeben">
-            <button type="button" id="saveMetaBtn">Speichern</button>
-        </div>
-
-        <p id="metaStatus" class="alt-status" aria-live="polite"></p>
-    </div>
-</div>
-
-
-</dialog>
-
-<dialog id="deleteConfirmDialog" class="modal">
-    <div class="dialog-content">
-        <p id="deleteConfirmText"><?= __('confirm_delete') ?></p>
-        <div class="dialog-buttons">
-            <button id="deleteCancelBtn"><?= __('cancel') ?></button>
-            <button id="deleteConfirmBtn"><?= __('delete_selected') ?></button>
-        </div>
-    </div>
-</dialog>
 
 
 </div>
@@ -345,6 +310,15 @@ foreach ($files as $filePath):
 <?php if (!$selectMode): ?>
 </form>
 <?php endif; ?>
+
+<?php
+// Dialog einbinden
+include 'includes/dialog.php';
+?>
+
+
+<!-- JavaScript für das Modal -->
+<script src="assets/js/dialog.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -394,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialog = document.getElementById('imagePreviewDialog');
     const previewImg = document.getElementById('previewImage');
     const previewText = document.getElementById('previewText');
-    const closeBtn = document.getElementById('closeDialog');
+    const closeBtn = document.getElementById('modalClose');
     const fileNameEl = document.getElementById('fileName');
     const fileSizeEl = document.getElementById('fileSize');
     const fileDimensionsEl = document.getElementById('fileDimensions');
@@ -403,23 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const captionInput = document.getElementById('captionInput');
     const saveMetaBtn = document.getElementById('saveMetaBtn');
     const metaStatus = document.getElementById('metaStatus');
-    const deleteButton = document.getElementById('deleteButton');
-    const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
 
     let currentFile = null;
 
-    // Checkbox → Löschen-Button aktivieren/deaktivieren
-    deleteCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            const anyChecked = [...deleteCheckboxes].some(cb => cb.checked);
-            deleteButton.disabled = !anyChecked;
-        });
-    });
-
-    // Klick nur auf Vorschau (Bild/Text) öffnet Dialog
     document.querySelectorAll('.file-item .preview-trigger').forEach(trigger => {
         trigger.addEventListener('click', async (e) => {
-            e.stopPropagation(); // verhindert, dass Label-Klick Checkbox auslöst
+            e.stopPropagation(); // verhindert, dass Checkbox geklickt wird
             const item = trigger.closest('.file-item');
 
             const file = item.querySelector('.filename').textContent;
@@ -435,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Vorschau zurücksetzen
             previewImg.style.display = 'none';
             previewText.style.display = 'none';
-            imageMeta.style.display = 'none';
+  //          imageMeta.style.display = 'none';
             previewImg.src = '';
             previewImg.alt = '';
 
@@ -444,12 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 previewImg.alt = item.dataset.alt || '';
                 previewImg.style.display = 'block';
 
-                imageMeta.style.display = 'block';
+     //           imageMeta.style.display = 'block';
                 altTextInput.value = item.dataset.alt || '';
                 captionInput.value = item.dataset.caption || '';
                 altTextInput.dataset.filename = file;
                 captionInput.dataset.filename = file;
 
+                // Dateigröße
                 fetch(url, { method: 'HEAD' }).then(res => {
                     const size = res.headers.get('content-length');
                     fileSizeEl.textContent = size ? (size / 1024).toFixed(1) + ' KB' : 'n/a';
@@ -474,7 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileDimensionsEl.textContent = '–';
             }
 
+            // Dialog öffnen und Fokus setzen für Screenreader
             dialog.showModal();
+            dialog.focus();
         });
     });
 
@@ -489,118 +455,123 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Alt + Caption speichern
     saveMetaBtn.addEventListener('click', async () => {
-    const file = altTextInput.dataset.filename;
-    if (!file) return;
+        const file = altTextInput.dataset.filename;
+        if (!file) return;
 
-    const alt = altTextInput.value.trim();
-    const caption = captionInput.value.trim();
+        const alt = altTextInput.value.trim();
+        const caption = captionInput.value.trim();
 
-    const fileItem = [...document.querySelectorAll('.file-item')]
-        .find(f => f.querySelector('.filename').textContent === file);
-    const img = fileItem?.querySelector('img');
+        const fileItem = [...document.querySelectorAll('.file-item')]
+            .find(f => f.querySelector('.filename').textContent === file);
+        const img = fileItem?.querySelector('img');
 
-    // vorherige Werte sichern für Fehlerfall
-    const previousAlt = img?.alt || '';
-    const previousCaption = img?.dataset.caption || '';
+        // vorherige Werte sichern für Fehlerfall
+        const previousAlt = img?.alt || '';
+        const previousCaption = img?.dataset.caption || '';
 
-    if (img) {
-    // UI sofort aktualisieren
-    img.alt = alt;
-    img.dataset.caption = caption;
-
-    // data-Attribute im file-item aktualisieren
-    fileItem.dataset.alt = alt;
-    fileItem.dataset.caption = caption;
-}
-
-
-    metaStatus.textContent = 'Speichern…';
-    metaStatus.className = 'alt-status saving';
-
-    try {
-        // CSRF-Token aus dem versteckten Input
-        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-
-        // 1️⃣ Alt-Text speichern
-        const altRes = await fetch('save_alt_text.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                filename: file,
-                altText: alt,
-                csrf_token: csrfToken
-            })
-        });
-        if (!altRes.ok) throw new Error('Netzwerkfehler beim Alt-Text speichern');
-        const altData = await altRes.json();
-        if (!altData.success) throw new Error(altData.msg || 'Fehler beim Speichern Alt-Text');
-
-        // 2️⃣ Caption speichern
-        const captionRes = await fetch('save_caption.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                filename: file,
-                caption: caption,
-                csrf_token: csrfToken
-            })
-        });
-        if (!captionRes.ok) throw new Error('Netzwerkfehler beim Caption speichern');
-        const captionData = await captionRes.json();
-        if (!captionData.success) throw new Error(captionData.msg || 'Fehler beim Speichern Caption');
-
-        // Erfolgsanzeige
-        metaStatus.textContent = 'Gespeichert ✓';
-        metaStatus.className = 'alt-status success';
-        setTimeout(() => {
-            metaStatus.textContent = '';
-            metaStatus.className = 'alt-status';
-        }, 2000);
-
-    } catch (err) {
-        console.error(err);
-
-        // Preview zurücksetzen, falls Fehler
         if (img) {
-            img.alt = previousAlt;
-            img.dataset.caption = previousCaption;
+            // UI sofort aktualisieren
+            img.alt = alt;
+            img.dataset.caption = caption;
+
+            // data-Attribute im file-item aktualisieren
+            fileItem.dataset.alt = alt;
+            fileItem.dataset.caption = caption;
         }
 
-        metaStatus.textContent = 'Fehler beim Speichern';
-        metaStatus.className = 'alt-status error';
-    }
+        metaStatus.textContent = 'Speichern…';
+        metaStatus.className = 'alt-status saving';
+
+        try {
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+
+            // Alt-Text speichern
+            const altRes = await fetch('save_alt_text.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ filename: file, altText: alt, csrf_token: csrfToken })
+            });
+            if (!altRes.ok) throw new Error('Netzwerkfehler beim Alt-Text speichern');
+            const altData = await altRes.json();
+            if (!altData.success) throw new Error(altData.msg || 'Fehler beim Speichern Alt-Text');
+
+            // Caption speichern
+            const captionRes = await fetch('save_caption.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ filename: file, caption: caption, csrf_token: csrfToken })
+            });
+            if (!captionRes.ok) throw new Error('Netzwerkfehler beim Caption speichern');
+            const captionData = await captionRes.json();
+            if (!captionData.success) throw new Error(captionData.msg || 'Fehler beim Speichern Caption');
+
+            // Erfolgsanzeige
+            metaStatus.textContent = 'Gespeichert ✓';
+            metaStatus.className = 'alt-status success';
+            setTimeout(() => {
+                metaStatus.textContent = '';
+                metaStatus.className = 'alt-status';
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+
+            // Preview zurücksetzen bei Fehler
+            if (img) {
+                img.alt = previousAlt;
+                img.dataset.caption = previousCaption;
+            }
+
+            metaStatus.textContent = 'Fehler beim Speichern';
+            metaStatus.className = 'alt-status error';
+        }
+    });
 });
 
-
-});
 
 document.addEventListener('DOMContentLoaded', () => {
     const deleteButton = document.getElementById('deleteButton');
-    const deleteDialog = document.getElementById('deleteConfirmDialog');
-    const deleteCancelBtn = document.getElementById('deleteCancelBtn');
-    const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+    const deleteDialog = document.getElementById('deleteModal');
+    const confirmBtn = document.getElementById('modalConfirm');
+    const cancelBtn = document.getElementById('modalCancel');
+    const closeBtn = document.getElementById('modalClose');
     const deleteForm = document.getElementById('deleteForm');
 
+    if (!deleteButton || !deleteDialog) return;
+
+    // Öffnen des Dialogs
     deleteButton.addEventListener('click', (e) => {
-        e.preventDefault();           // Form nicht sofort absenden
-        deleteDialog.showModal();     // Dialog öffnen
+        e.preventDefault();
+        deleteDialog.showModal();
+        deleteDialog.focus(); // Fokus auf Dialog für Screenreader
     });
 
-    // Abbrechen-Button
-    deleteCancelBtn.addEventListener('click', () => {
-        deleteDialog.close();
-    });
-
-    // Bestätigen-Button → Form absenden
-    deleteConfirmBtn.addEventListener('click', () => {
+    // Bestätigen → Formular absenden
+    confirmBtn.addEventListener('click', () => {
         deleteDialog.close();
         deleteForm.submit();
     });
 
-    // ESC oder Klick außerhalb schließt Dialog
-    deleteDialog.addEventListener('keydown', e => { if (e.key === 'Escape') deleteDialog.close(); });
-    deleteDialog.addEventListener('click', e => { if (e.target === deleteDialog) deleteDialog.close(); });
+    // Dialog schließen (Cancel oder Close Button)
+    function closeDialog() {
+        deleteDialog.close();
+        deleteButton.focus(); // Fokus zurück auf den auslösenden Button
+    }
+
+    cancelBtn.addEventListener('click', closeDialog);
+    closeBtn.addEventListener('click', closeDialog);
+
+    // ESC schließt Dialog
+    deleteDialog.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDialog();
+    });
+
+    // Klick außerhalb des Dialogs schließt ihn
+    deleteDialog.addEventListener('click', e => {
+        if (e.target === deleteDialog) closeDialog();
+    });
 });
+
 
 
 

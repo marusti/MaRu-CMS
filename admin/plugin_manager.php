@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/assets/icons/icons.php'; 
 
 // CSRF Token Funktionen
 function csrf_token() {
@@ -273,6 +274,7 @@ ob_start();
             name="plugin_zip"
             accept=".zip"
             hidden
+            aria-label="Choose a zip file"
         >
     </div>
     
@@ -282,46 +284,72 @@ ob_start();
 
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-<div id="pluginList">
-    <?php if (count($allPlugins) === 0): ?>
-        <p><?= __('no_plugins_found') ?></p>
-    <?php else: ?>
-        <?php foreach ($allPlugins as $plugin): ?>
-            <?php
-                $checked = in_array($plugin, $activePlugins) ? 'checked' : '';
-                $pluginSettings = load_plugin_settings($plugin);
-                $pluginInfo = load_plugin_info($plugin);
-            ?>
-            <details class="plugin-block">
-                <summary class="plugin-summary" aria-expanded="false">
-                    <svg class="toggle-arrow" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                        <path d="M5 3l5 5-5 5"/>
-                    </svg>
-                    <input type="checkbox" id="plugin_<?= htmlspecialchars($plugin) ?>" name="plugins[]" value="<?= htmlspecialchars($plugin) ?>" <?= $checked ?>>
-<label for="plugin_<?= htmlspecialchars($plugin) ?>">
-    <strong><?= htmlspecialchars($pluginInfo['name'] ?? $plugin) ?></strong>
-    <?php if ($pluginInfo): ?>
-        – <?= __('version') ?> <?= htmlspecialchars($pluginInfo['version']) ?>, <?= __('by') ?> <?= htmlspecialchars($pluginInfo['author']) ?>
-    <?php endif; ?>
-</label>
 
-                    <button type="button" class="delete-plugin" data-plugin="<?= htmlspecialchars($plugin) ?>" title="<?= __('delete') ?>">🗑️</button>
-                </summary>
+    <fieldset class="plugin-fieldset">
+        <legend class="sr-only"><?= __('select plugins to activate') ?></legend>
 
-                <div class="plugin-details">
-                    <?php if ($pluginInfo): ?>
-                        <p><strong><?= __('description') ?>:</strong> <?= nl2br(htmlspecialchars($pluginInfo['description'] ?? '-')) ?></p>
-                    <?php endif; ?>
+        <div id="pluginList">
+            <?php if (count($allPlugins) === 0): ?>
+                <p><?= __('no_plugins_found') ?></p>
+            <?php else: ?>
+                <?php foreach ($allPlugins as $plugin): ?>
+                    <?php
+                        $checked = in_array($plugin, $activePlugins) ? 'checked' : '';
+                        $pluginSettings = load_plugin_settings($plugin);
+                        $pluginInfo = load_plugin_info($plugin);
+                    ?>
+                    <details class="plugin-block">
+                        <summary class="plugin-summary" aria-expanded="false">
+                            <svg class="toggle-arrow" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                <path d="M5 3l5 5-5 5"/>
+                            </svg>
 
-                    <?= render_plugin_settings_form($plugin, $pluginSettings) ?>
-                </div>
-            </details>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
+                            <input type="checkbox"
+                                   id="plugin_<?= htmlspecialchars($plugin) ?>"
+                                   name="plugins[]"
+                                   value="<?= htmlspecialchars($plugin) ?>"
+                                   <?= $checked ?>>
 
-<button type="submit"><?= __('save') ?></button>
+                            <label for="plugin_<?= htmlspecialchars($plugin) ?>">
+                                <strong><?= htmlspecialchars($pluginInfo['name'] ?? $plugin) ?></strong>
+                                <?php if ($pluginInfo): ?>
+                                    – <?= __('version') ?> <?= htmlspecialchars($pluginInfo['version']) ?>, <?= __('by') ?> <?= htmlspecialchars($pluginInfo['author']) ?>
+                                <?php endif; ?>
+                            </label>
+
+                            <button type="button" class="maru-delete delete-plugin"
+        data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
+        data-message="<?= htmlspecialchars(__('confirm_delete_plugin'), ENT_QUOTES) ?>"
+        data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
+        title="<?= __('delete') ?>">
+    <?= getIcon('delete') ?>
+</button>
+
+
+                        </summary>
+
+                        <div class="maru-ext-details plugin-details">
+                            <?php if ($pluginInfo): ?>
+                                <p><strong><?= __('description') ?>:</strong> <?= nl2br(htmlspecialchars($pluginInfo['description'] ?? '-')) ?></p>
+                            <?php endif; ?>
+
+                            <?= render_plugin_settings_form($plugin, $pluginSettings) ?>
+                        </div>
+                    </details>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </fieldset>
+
+    <button type="submit"><?= __('save') ?></button>
 </form>
+
+<form method="post" id="deletePluginForm" hidden>
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+    <input type="hidden" name="delete_plugin" id="deletePluginInput">
+</form>
+
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -476,6 +504,13 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<?php
+// Dialog einbinden
+include 'includes/dialog.php';
+?>
+
+<!-- JavaScript für das Modal -->
+<script src="assets/js/dialog.js"></script>
 
 <?php
 $content = ob_get_clean();

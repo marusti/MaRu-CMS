@@ -1,37 +1,97 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// init.php lädt schon session, csrf, helpers und settings
+require_once __DIR__ . '/init.php';
 
+// Admin-Login prüfen
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
 
-$settingsFile = __DIR__ . '/../config/settings.json';
-$maintenanceActive = false;
-if (file_exists($settingsFile)) {
-    $settingsContent = file_get_contents($settingsFile);
-$settings = json_decode($settingsContent, true);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    $settings = [];
+// Funktion: Aktuelle Base-URL ermitteln (mit /admin Entfernen)
+function get_current_base_url(): string
+{
+    // Protokoll sauber erkennen (Proxy-freundlich)
+    $https =
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+        (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+    $protocol = $https ? 'https' : 'http';
+
+    // Host ohne Whitespace
+    $host = trim($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+    // Pfad ermitteln
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $path = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+
+    // /admin am Ende sicher entfernen
+    if (preg_match('~/admin$~i', $path)) {
+        $path = preg_replace('~/admin$~i', '', $path);
+    }
+
+    // Sonderfälle bereinigen
+    if ($path === '.' || $path === '/') {
+        $path = '';
+    }
+
+    return $protocol . '://' . $host . $path . '/';
 }
+
+
+
+
+function normalize_url($url) {
+    return strtolower(rtrim(trim($url), '/'));
+}
+
+// Wartungsmodus prüfen (aus bereits geladenem $settings)
 $maintenanceActive = !empty($settings['maintenance']);
 
-}
+// CMS-Daten laden
+$cmsFile = __DIR__ . '/../config/cms.json';
+$cms = json_decode(@file_get_contents($cmsFile) ?: '{}', true) ?: [];
 
-require_once __DIR__ . '/init.php';
-
+// Seitentitel und Content default setzen
 if (!isset($pageTitle)) $pageTitle = 'Admin';
 if (!isset($content)) $content = '';
+
+// Base URL ermitteln und vergleichen
+$currentBaseUrl = get_current_base_url();
+
+$storedBaseUrlNormalized = normalize_url($settings['base_url'] ?? '');
+$currentBaseUrlNormalized = normalize_url($currentBaseUrl);
+
+$baseUrlMismatch = ($storedBaseUrlNormalized !== $currentBaseUrlNormalized);
+
+$saveError = '';
+
+// Formular zum Speichern der neuen Base-URL verarbeiten
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_POST['new_base_url'])) {
+    $newBaseUrl = trim($_POST['new_base_url']);
+
+    $settings['base_url'] = $newBaseUrl;
+
+    if (is_writable($settingsFile)) {
+        file_put_contents($settingsFile, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        // Nach Speichern neu laden
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
+    } else {
+        $saveError = __('error_writing_settings');
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($lang) ?>">
 <head>
   <meta charset="UTF-8">
-  <title><?= htmlspecialchars($pageTitle) ?></title>
+  <title><?= htmlspecialchars($pageTitle) ?> | <?= htmlspecialchars($cms['name']) ?></title>
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
     (function() {
@@ -45,9 +105,9 @@ if (!isset($content)) $content = '';
 </head>
 <body>
 
-<header role="banner" aria-label="Admin Header" style="display: flex; align-items: center; justify-content: space-between; gap: 1em;">
+<header role="banner" aria-label="Admin Header">
  <!-- Logo hinzufügen -->
-  <img src="assets/images/logo.png" alt="Website Logo" style="height: 50px;">
+  <img src="assets/images/logo.png" alt="<?= htmlspecialchars($cms['name']) ?> Logo" style="height: 50px;">
   
   <h1><?= htmlspecialchars(__('admin_dashboard')) ?></h1>
 
@@ -59,7 +119,7 @@ if (!isset($content)) $content = '';
 </select>
 
   <!-- Vorschau-Link rechts ausgerichtet -->
-  <a href="../" target="_blank" title="<?= htmlspecialchars(__('preview')) ?>" style="display: flex; align-items: center; color: var(--text-color-dark); margin-left: auto;">
+  <a href="<?= htmlspecialchars($baseUrl) ?>" target="_blank" style="display: flex; align-items: center; color: var(--text-color-dark); margin-left: auto;">
     <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.3em;">
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -102,6 +162,13 @@ if (!isset($content)) $content = '';
         </svg>
         <span><?= __('dashboard') ?></span>
       </a></li>
+      
+      <li><a href="manage_categories.php" data-tooltip="<?= htmlspecialchars(__('categories')) ?>">
+        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M3 4h18M3 10h18M3 16h18"></path>
+        </svg>
+        <span><?= __('categories') ?></span>
+      </a></li>
 
       <li><a href="content_manager.php" data-tooltip="<?= htmlspecialchars(__('content')) ?>">
         <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -118,17 +185,7 @@ if (!isset($content)) $content = '';
           <polyline points="14 2 14 8 20 8"></polyline>
         </svg>
         <span><?= __('filemanager') ?></span>
-      </a></li>
-      
-      <li><a href="gallery_manager.php" data-tooltip="<?= htmlspecialchars(__('gallery_admin') ?? 'Galerie verwalten') ?>">
-  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-    <rect x="3" y="3" width="18" height="14" rx="2" ry="2"></rect>
-    <circle cx="8" cy="8" r="2.5"></circle>
-    <path d="M21 21l-6-6-3 3-4-4-5 5"></path>
-  </svg>
-  <span><?= __('gallery_admin') ?? 'Galerie verwalten' ?></span>
-</a></li>
-
+      </a></li>     
 
       <li><a href="users.php" data-tooltip="<?= htmlspecialchars(__('users')) ?>">
         <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -177,16 +234,39 @@ if (!isset($content)) $content = '';
 
 <main role="main">
 <?php if ($maintenanceActive): ?>
-<div style="background: #ffefc1; padding: 10px; margin-bottom: 1em; border-left: 5px solid #ffcc00;">
+<div class="warning maintenance-warning">
     <strong><?= htmlspecialchars(__('maintenance_active_note')) ?>:</strong> <?= htmlspecialchars(__('maintenance_active')) ?>
 </div>
 <?php endif; ?>
+
+    <?php if ($baseUrlMismatch): ?>
+        <form method="post" class="warning baseurl-warning">
+            <strong><?= __('warning') ?>:</strong>
+            <span><?= __('base_url_mismatch') ?></span><br>
+            <input type="hidden" name="new_base_url" value="<?= htmlspecialchars($currentBaseUrl) ?>">
+            <button type="submit" name="save_base_url"><?= __('update_base_url_to_current') ?></button>
+            <?php if ($saveError): ?>
+                <div class="error" style="color:red; margin-top:0.5em;">
+                    <?= htmlspecialchars($saveError) ?>
+                </div>
+            <?php endif; ?>
+        </form>
+    <?php endif; ?>
 
 <?= $content ?>
 </main>
 
 <footer role="contentinfo" aria-label="Footer">
-  <p>© <?= date('Y') ?> Dein CMS</p>
+  <small>
+    © <?= date('Y') ?> | 
+    <a href="https://github.com/marusti/MaRu-CMS"
+       target="_blank"
+       rel="noopener noreferrer">
+      <?= htmlspecialchars($cms['name']) ?>
+    </a>
+    <?= htmlspecialchars($cms['version']) ?>
+    <?= htmlspecialchars($cms['status']) ?>
+  </small>
 </footer>
 
 <script src="assets/js/editor.js"></script>

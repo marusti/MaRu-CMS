@@ -1,0 +1,30 @@
+<?php
+function breadcrumb_render($settings = []) {
+    $homeLabel = $settings['home_label'] ?? 'Startseite';
+    $separator = $settings['separator'] ?? ' / ';
+
+    $uri = $_SERVER['REQUEST_URI'];
+    $path = parse_url($uri, PHP_URL_PATH);
+    $segments = array_filter(explode('/', $path));
+
+    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+        . "://{$_SERVER['HTTP_HOST']}";
+
+    $items = [];
+
+    // Startseite
+    $items[] = '<a href="' . htmlspecialchars($baseUrl) . '/">' . htmlspecialchars($homeLabel) . '</a>';
+
+    $pathAccumulator = '';
+    foreach ($segments as $index => $segment) {
+        $pathAccumulator .= '/' . $segment;
+        $name = ucfirst(str_replace(['-', '_'], ' ', $segment));
+        if ($index === array_key_last($segments)) {
+            $items[] = '<span aria-current="page">' . htmlspecialchars($name) . '</span>';
+        } else {
+            $items[] = '<a href="' . htmlspecialchars($baseUrl . $pathAccumulator) . '">' . htmlspecialchars($name) . '</a>';
+        }
+    }
+
+    return '<nav aria-label="Breadcrumb">' . implode(htmlspecialchars($separator), $items) . '</nav>';
+}

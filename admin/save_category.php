@@ -29,9 +29,9 @@ $saveSuccess = file_put_contents($file, json_encode($categories, JSON_PRETTY_PRI
 
 if ($saveSuccess) {
     // Erfolgsmeldung, wenn die Kategorie erfolgreich gespeichert wurde
-    header('Location: content_manager.php?success=category');
+    header('Location: manage_categories.php?success=category');
 } else {
     // Fehlermeldung, wenn das Speichern fehlschlägt
-    header('Location: content_manager.php?error=category');
+    header('Location: manage_categories.php?error=category');
 }
 exit;
