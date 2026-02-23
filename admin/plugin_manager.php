@@ -63,8 +63,6 @@ function save_plugin_settings($pluginName, $settings): bool {
     return true;
 }
 
-
-
 function load_plugin_info($plugin) {
     return load_json_file(__DIR__ . "/../plugins/$plugin/plugin.json");
 }
@@ -146,7 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
 $pageTitle = __('plugin_manager');
 $csrfToken = csrf_token();
 
@@ -186,39 +183,37 @@ function render_plugin_settings_form(string $plugin, array $settings): string {
                 break;
 
             case 'select':
-    $optionsByCategory = [];
-    if (!empty($field['options_source']) && $field['options_source'] === 'pages') {
-        $pages = getAllPages(); // aus helpers.php
-        foreach ($pages as $page) {
-            $category = $page['category'];
-            $keyValue = $page['category'] . '/' . $page['filename'];
-            $title = $page['title'];
-            $optionsByCategory[$category][$keyValue] = $title;
-        }
-    } elseif (!empty($field['options'])) {
-        // Fallback: keine Kategorien, nur flache Liste
-        $optionsByCategory[''] = $field['options'];
-    }
+                $optionsByCategory = [];
+                if (!empty($field['options_source']) && $field['options_source'] === 'pages') {
+                    $pages = getAllPages(); // aus helpers.php
+                    foreach ($pages as $page) {
+                        $category = $page['category'];
+                        $keyValue = $page['category'] . '/' . $page['filename'];
+                        $title = $page['title'];
+                        $optionsByCategory[$category][$keyValue] = $title;
+                    }
+                } elseif (!empty($field['options'])) {
+                    // Fallback: keine Kategorien, nur flache Liste
+                    $optionsByCategory[''] = $field['options'];
+                }
 
-    $html .= '<select name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']">';
+                $html .= '<select name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']">';
 
-    foreach ($optionsByCategory as $category => $options) {
-        if ($category !== '') {
-            $html .= '<optgroup label="' . htmlspecialchars($category) . '">';
-        }
-        foreach ($options as $optValue => $optLabel) {
-            $selected = ($value == $optValue) ? ' selected' : '';
-            $html .= '<option value="' . htmlspecialchars($optValue) . '"' . $selected . '>' . htmlspecialchars($optLabel) . '</option>';
-        }
-        if ($category !== '') {
-            $html .= '</optgroup>';
-        }
-    }
+                foreach ($optionsByCategory as $category => $options) {
+                    if ($category !== '') {
+                        $html .= '<optgroup label="' . htmlspecialchars($category) . '">';
+                    }
+                    foreach ($options as $optValue => $optLabel) {
+                        $selected = ($value == $optValue) ? ' selected' : '';
+                        $html .= '<option value="' . htmlspecialchars($optValue) . '"' . $selected . '>' . htmlspecialchars($optLabel) . '</option>';
+                    }
+                    if ($category !== '') {
+                        $html .= '</optgroup>';
+                    }
+                }
 
-    $html .= '</select>';
-    break;
-
-
+                $html .= '</select>';
+                break;
 
             case 'textarea':
                 $html .= '<textarea name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']">' . htmlspecialchars($value) . '</textarea>';
@@ -317,10 +312,11 @@ ob_start();
                                 <?php endif; ?>
                             </label>
 
-                            <button type="button" class="maru-delete delete-plugin"
+                            <button type="button"
+        class="maru-delete delete-plugin"
+        data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
         data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
         data-message="<?= htmlspecialchars(__('confirm_delete_plugin'), ENT_QUOTES) ?>"
-        data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
         title="<?= __('delete') ?>">
     <?= getIcon('delete') ?>
 </button>
@@ -350,7 +346,6 @@ ob_start();
 </form>
 
 
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const pluginList = document.getElementById('pluginList');
@@ -373,31 +368,33 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ===============================
        Plugin löschen (AJAX)
     =============================== */
+    
     if (pluginList) {
-        pluginList.addEventListener('click', function (e) {
-            if (e.target.classList.contains('delete-plugin')) {
-                const plugin = e.target.dataset.plugin;
-                if (!confirm('<?= addslashes(__('confirm_delete_plugin')) ?>')) return;
+        pluginList.querySelectorAll('.delete-plugin').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault(); // Verhindert das sofortige Löschen
 
-                fetch('plugin_delete.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'plugin=' + encodeURIComponent(plugin) +
-                          '&csrf_token=' + encodeURIComponent(csrfToken)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        e.target.closest('details.plugin-block')?.remove();
-                        showStatus('<?= addslashes(__('plugin_deleted')) ?>', 'success');
-                    } else {
-                        showStatus(data.error || '<?= addslashes(__('error_occurred')) ?>', 'error');
-                    }
-                })
-                .catch(() => {
-                    showStatus('<?= addslashes(__('error_occurred')) ?>', 'error');
-                });
-            }
+                const plugin = btn.dataset.plugin;
+                if (!plugin) return;
+
+                // Nur das zentrale Modal aufrufen
+                if (typeof confirmModal === 'function') {
+                    confirmModal(
+                        btn.dataset.title || '<?= addslashes(__('delete')) ?>',
+                        btn.dataset.message || '<?= addslashes(__('confirm_delete_plugin')) ?>'.replace('%s', plugin),
+                        null, // Keine URL hier, wir nutzen den Action-Callback
+                        () => {
+                            const form = document.getElementById('deletePluginForm');
+                            const input = document.getElementById('deletePluginInput');
+                            if (form && input) {
+                                input.value = plugin;  // Das Plugin an das versteckte Input-Element übergeben
+                                form.submit();         // Form absenden, erst jetzt wird das Plugin gelöscht
+                            }
+                        }
+                    );
+                }
+            });
+
         });
     }
 
@@ -503,14 +500,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-
-<?php
-// Dialog einbinden
-include 'includes/dialog.php';
-?>
-
-<!-- JavaScript für das Modal -->
-<script src="assets/js/dialog.js"></script>
 
 <?php
 $content = ob_get_clean();

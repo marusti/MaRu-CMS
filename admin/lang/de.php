@@ -28,7 +28,6 @@ return [
     'content' => 'Inhalt',
     'categories'  => 'Kategorien',
     'filemanager' => 'Dateien',
-'gallery_admin' => 'Galerien',
     'users' => 'Benutzer',
     'settings' => 'Einstellungen',
     'templates' => 'Templates',
@@ -53,6 +52,11 @@ return [
     'cms_path' => 'CMS-Serverpfad',
     'update_available' => 'Neue Version verfügbar',
     'no_updates' => 'Keine neuen Updates verfügbar.',
+    'version_status' => 'Versionsstatus',
+'version_ahead' => 'Development-Version erkannt',
+'current_version' => 'Aktuell installiert',
+'latest_release' => 'Letztes Release',
+
     'permissions' => 'Schreibrechte',
     'writable' => '✔ Schreibbar',
     'not_writable' => '✖ Keine Schreibrechte',
@@ -74,11 +78,12 @@ return [
     'add_category' => 'Kategorie hinzufügen',
     'existing_categories' => 'Vorhandene Kategorien',
     'rename' => 'Umbenennen',
-    'delete' => 'Löschen',
+'delete_category' => 'Kategorie löschen',
     'delete_category_confirm' => 'Kategorie löschen? Seiten bleiben erhalten.',
     'pages' => 'Seiten',
     'create_new_page' => 'Neue Seite erstellen',
     'edit' => 'Bearbeiten',
+'delete_page' => 'Seite löschen',
     'delete_page_confirm' => 'Seite wirklich löschen?',
         'status_published' => 'Veröffentlicht',
     'status_draft' => 'Entwurf',
@@ -97,7 +102,7 @@ return [
 'category_exists_error' => 'Eine Kategorie mit diesem Namen/Slug existiert bereits.',
 'category_not_found' => 'Kategorie nicht gefunden.',
 'category_renamed_successfully' => 'Kategorie erfolgreich umbenannt.',
-'delete_category' => 'Kategorie löschen',
+
 
     
          'edit_page' => 'Seite bearbeiten',
@@ -160,9 +165,6 @@ return [
     'select_image' => 'Bild auswählen',
     'image_preview' => 'Bild Vorschau',
     
-'manage_galleries' => 'Galerien verwalten',
-'all_galleries' => 'Alle Galerien',
-
     
     'manage_users' => 'Benutzer verwalten',
     'create_user' => 'Neuen Benutzer erstellen',
@@ -185,7 +187,7 @@ return [
     'password_invalid' => 'Passwort muss mindestens 8 Zeichen lang sein, einen Großbuchstaben und eine Zahl enthalten und darf keine Sonderzeichen enthalten.',
     'username_invalid' => 'Benutzername muss mindestens 5 Zeichen lang sein und darf nicht bereits existieren.',
     'editor_change_own_password_only' => 'Editor darf nur das eigene Passwort ändern.',
-    'confirm_delete_user' => 'Bist du sicher, dass du den Benutzer löschen möchtest?',
+
     'cancel' => 'Abbrechen',
     
         'settings' => 'Einstellungen',
@@ -207,6 +209,8 @@ return [
     'create_sitemap' => 'Sitemap erstellen',
     'url_settings' =>  'URL-Einstellungen',
 'enable_mod_rewrite' => 'mod_rewrite aktivieren (saubere URLs)',
+'content_languages' => 'Inhaltssprachen',
+    'content_languages_label' => 'Verfügbare Inhaltssprachen (durch Komma getrennt)',
 
     
 'error_sitemap_dir_not_writable' => 'Das Verzeichnis für die Sitemap ist nicht schreibbar.',
@@ -282,6 +286,14 @@ return [
       'select_plugins_to_activate' => 'Plugins auswählen',
       'search_plugins' => 'Plugins suchen',
       'search_plugins_placeholder' => 'Name eines Plugins eingeben...',
+      
+ // === Zentrale Delete-Messages mit Platzhalter für dynamische Namen ===
+    'delete_confirm_user' => 'Bist du sicher, dass du den Benutzer "%s" löschen möchtest?',
+    'delete_confirm_template' => 'Template "%s" wirklich löschen?',
+    'delete_confirm_plugin' => 'Plugin "%s" wirklich löschen?',
+    'delete_confirm_category' => 'Kategorie "%s" wirklich löschen?',
+    'delete_confirm_page' => 'Seite "%s" wirklich löschen?',
+    'delete_confirm_file' => 'Datei "%s" wirklich löschen?',
     
     // Update-Check / System
 'update_check_unavailable' => 'Updateprüfung nicht möglich (cURL ist auf diesem Server nicht aktiviert).',

@@ -1,12 +1,15 @@
-let deleteUrl = null;      // für GET-Löschen (Kategorie/Seite)
-let deleteAction = null;   // für POST-Löschen (Template/Plugin)
+// Zentraler Dialog-Handler
+let deleteUrl = null;
+let deleteAction = null;
 let lastFocusedEl = null;
 let isModalOpen = false;
 
-function openModal() {
-    if (isModalOpen) return;
-
-    const modal = document.getElementById('deleteModal');
+/**
+ * Öffnet ein beliebiges Modal per ID
+ * @param {string} id 
+ */
+function openDialog(id) {
+    const modal = document.getElementById(id);
     if (!modal) return;
 
     modal.showModal();
@@ -14,131 +17,173 @@ function openModal() {
     isModalOpen = true;
 }
 
-function closeModal() {
-    if (!isModalOpen) return;
-
-    const modal = document.getElementById('deleteModal');
+/**
+ * Schließt ein beliebiges Modal per ID
+ * @param {string} id 
+ */
+function closeDialog(id) {
+    const modal = document.getElementById(id);
     if (!modal) return;
 
     modal.close();
-    deleteUrl = null;
-    deleteAction = null;
+    isModalOpen = false;
 
     if (lastFocusedEl) {
         lastFocusedEl.focus();
         lastFocusedEl = null;
     }
-
-    isModalOpen = false;
 }
 
+/**
+ * Öffnet das zentrale Delete-Modal
+ */
+function openDeleteModal() {
+    openDialog('deleteModal');
+}
+
+/**
+ * Schließt das zentrale Delete-Modal
+ */
+function closeDeleteModal() {
+    closeDialog('deleteModal');
+    deleteUrl = null;
+    deleteAction = null;
+}
+
+/**
+ * Zeigt das Delete-Modal mit Titel, Nachricht, URL oder Callback
+ */
 function confirmModal(title, message, url = null, action = null) {
     lastFocusedEl = document.activeElement;
 
     const modalTitle = document.getElementById('modalTitle');
     const modalMessage = document.getElementById('modalMessage');
-    const modalConfirm = document.getElementById('modalConfirm');
 
-    if (typeof title === 'string' && modalTitle) {
-        modalTitle.textContent = title;
-    }
-    if (typeof message === 'string' && modalMessage) {
-        modalMessage.textContent = message;
-    }
+    if (modalTitle) modalTitle.textContent = title;
+    if (modalMessage) modalMessage.textContent = message;
 
     deleteUrl = url;
     deleteAction = action;
 
-    openModal();
+    openDeleteModal();
 
+    const modalConfirm = document.getElementById('modalConfirm');
     modalConfirm?.focus();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('deleteModal');
+    // Alle Close-Buttons für beliebige Dialoge
+    document.querySelectorAll('.maru-close').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modal = btn.closest('dialog');
+            if (modal) closeDialog(modal.id);
+        });
+    });
+
+    // Klick außerhalb schließt Dialog
+    document.querySelectorAll('dialog').forEach(modal => {
+        modal.addEventListener('click', e => {
+            if (e.target === modal) closeDialog(modal.id);
+        });
+
+        // ESC schließt Dialog
+        modal.addEventListener('cancel', e => {
+            e.preventDefault();
+            closeDialog(modal.id);
+        });
+    });
+    
+ // Hinzufügen eines Event Listeners für den 'modalCancel'-Button
     const modalCancel = document.getElementById('modalCancel');
-    const modalClose = document.getElementById('modalClose');
+    if (modalCancel) {
+        modalCancel.addEventListener('click', () => {
+            const modal = modalCancel.closest('dialog');
+            if (modal) closeDialog(modal.id);
+        });
+    }
+
+    // Delete-Modal: "Ja"-Button
     const modalConfirm = document.getElementById('modalConfirm');
-
-    // Klick auf "Abbrechen" oder "X"
-    modalCancel?.addEventListener('click', closeModal);
-    modalClose?.addEventListener('click', closeModal);
-
-    // Klick außerhalb des Dialogs schließt Modal
-    modal?.addEventListener('click', e => {
-        if (e.target === e.currentTarget) closeModal();
-    });
-
-    // ESC-Key schließt Modal
-    modal?.addEventListener('cancel', e => {
-        e.preventDefault();
-        closeModal();
-    });
-
-    // Klick auf "Ja"
     modalConfirm?.addEventListener('click', () => {
         if (deleteAction) {
             deleteAction();
-            closeModal();
+            closeDeleteModal();
             return;
         }
-
         if (deleteUrl) {
-            const allowed = [
-                'delete_category.php',
-                'delete_page.php'
-            ];
-            if (allowed.some(prefix => deleteUrl.startsWith(prefix))) {
-                window.location.href = deleteUrl;
-            }
+            window.location.href = deleteUrl;
         }
-
-        closeModal();
+        closeDeleteModal();
     });
 
-    // EventListener für Buttons mit data-Attributen
-    document.querySelectorAll('[data-url], [data-template], [data-plugin]').forEach(btn => {
+    /**
+     * EventListener für Buttons mit data-Attributen (Kategorie, Seite, Template, Plugin)
+     */
+    document.querySelectorAll('[data-template]').forEach(btn => {
         btn.addEventListener('click', e => {
             e.preventDefault();
+            const filePath = btn.dataset.template;
 
-            if (btn.dataset.url) {
-                // Kategorie/Seite GET
-                confirmModal(
-                    btn.dataset.title,
-                    btn.dataset.message,
-                    btn.dataset.url
-                );
-            } else if (btn.dataset.template) {
-                // Template POST via verstecktes Formular
-                confirmModal(
-                    btn.dataset.title,
-                    btn.dataset.message,
-                    null,
-                    () => {
-                        const form = document.getElementById('deleteTemplateForm');
-                        const input = document.getElementById('deleteTemplateInput');
-                        if (form && input) {
-                            input.value = btn.dataset.template;
-                            form.submit();
-                        }
+            confirmModal(
+                btn.dataset.title || 'Bestätigung',
+                btn.dataset.message || LANG['delete_confirm_generic'],
+                null,
+                () => {
+                    const form = document.getElementById('deleteTemplateForm');
+                    const input = document.getElementById('deleteTemplateInput');
+                    if (form && input) {
+                        input.value = filePath;
+                        form.submit();
                     }
-                );
-            } else if (btn.dataset.plugin) {
-                // Plugin POST via verstecktes Formular
-                confirmModal(
-                    btn.dataset.title,
-                    btn.dataset.message,
-                    null,
-                    () => {
-                        const form = document.getElementById('deletePluginForm');
-                        const input = document.getElementById('deletePluginInput');
-                        if (form && input) {
-                            input.value = btn.dataset.plugin;
-                            form.submit();
-                        }
+                }
+            );
+        });
+    });
+
+    document.querySelectorAll('.delete-user').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            const username = btn.dataset.name;
+
+            confirmModal(
+                LANG['delete'],
+                LANG['delete_confirm_user'].replace('%s', username),
+                null,
+                () => {
+                    const form = document.getElementById('deleteUserForm');
+                    const input = document.getElementById('deleteUserInput');
+                    if (form && input) {
+                        input.value = username;
+                        form.submit();
                     }
-                );
-            }
+                }
+            );
         });
     });
 });
+
+/**
+ * Öffnet das Media-Modal
+ */
+function openMediaModal(url, onSelect) {
+    const modal = document.getElementById('mediaModal');
+    const content = document.getElementById('mediaModalContent');
+    if (!modal || !content) return;
+
+    fetch(url)
+        .then(r => r.text())
+        .then(html => {
+            content.innerHTML = html;
+
+            content.querySelectorAll('img').forEach(img => {
+                img.addEventListener('click', () => {
+                    if (typeof onSelect === 'function') {
+                        onSelect(img.src);
+                    }
+                    closeDialog('mediaModal');
+                });
+            });
+
+            openDialog('mediaModal');
+        });
+}

@@ -3,16 +3,8 @@
         "password": "$2y$12$knDy7ZCTLmG6fnZToq3xT.qZ3XahIUpZa6s36smPBS.jiNVSv2C6K",
         "role": "admin"
     },
-    "Tester": {
-        "password": "$2y$12$31wu49bTXX.fM4r.1F07EuMT9m9SVbm0Y9cguFjbkZax95LbhAG3u",
-        "role": "editor"
-    },
-    "Tester2": {
-        "password": "$2y$12$XviUhgrAbqjfLetdyLbtAeEsCzf7LUC6iTLuOpJruzobEly7UAr0i",
-        "role": "editor"
-    },
-    "benutzer": {
-        "password": "$2y$12$X5bRwUInY7Xdwer0IHkDNOThCBtnUmuTs\/n.0lKVLHJmm\/E\/sdtLe",
+    "iughrzgu": {
+        "password": "$2y$12$OY\/IhDSE2j9.fCBXd5LCJeuZOJMtE7w5jUeq2pZXISR76uAIN3ReS",
         "role": "editor"
     }
 }

@@ -98,9 +98,12 @@ file_put_contents($sitemapFile, $sitemap);
 
 // --- Redirect ---
 $action = $_POST['action'] ?? 'save';
+// Weiterleitung nach dem Speichern und Schließen
 if ($action === 'save_close') {
-    header('Location: content_manager.php?success=page');
+    header('Location: content_manager.php?success=page&pageTitle=' . urlencode($title));
 } else {
-    header('Location: edit_page.php?id=' . urlencode($id) . '&success=page');
+    // Weiterleitung nach dem Speichern, um weiter zu bearbeiten
+    header('Location: edit_page.php?id=' . urlencode($id) . '&success=page&pageTitle=' . urlencode($title));
 }
 exit;
+

@@ -4,7 +4,7 @@
         aria-labelledby="previewModalTitle"
         aria-describedby="previewModalMessage">
 
-    <h2 id="previewModalTitle"><?= __('preview') ?></h2>
+    <div id="previewModalTitle"><?= __('preview') ?></div>
 
     <div class="dialog-content">
         <div class="image-container">
@@ -34,12 +34,7 @@
         </div>
     </div>
 
-    <button id="modalClose"
-            type="button"
-            class="close-btn"
-            aria-label="<?= __('close') ?>">
-        ×
-    </button>
+    <button type="button" class="maru-close" aria-label="<?= __('close') ?>">x</button>
 </dialog>
 
 <!-- Lösch-Bestätigungsdialog -->
@@ -48,7 +43,7 @@
         aria-labelledby="modalTitle"
         aria-describedby="modalMessage">
 
-    <h2 id="modalTitle"><?= __('confirm') ?></h2>
+    <div id="modalTitle"><?= __('confirm') ?></div>
 
     <div class="dialog-content">
         <p id="modalMessage"><?= __('delete_confirm_generic') ?></p>
@@ -57,10 +52,34 @@
     <button id="modalConfirm" type="button"><?= __('yes') ?></button>
     <button id="modalCancel" type="button"><?= __('no') ?></button>
 
-    <button id="modalClose"
-            type="button"
-            class="close-btn"
-            aria-label="<?= __('close') ?>">
-        ×
-    </button>
+    <button type="button" class="maru-close" aria-label="<?= __('close') ?>">x</button>
 </dialog>
+
+<!-- Generischer Formular-Dialog -->
+<dialog id="formModal"
+        class="modal"
+        aria-labelledby="formModalTitle">
+
+    <div id="formModalTitle"></div>
+
+    <div class="dialog-content" id="formModalContent">
+        <!-- Wird dynamisch gefüllt -->
+    </div>
+
+    <button type="button" class="maru-close" aria-label="<?= __('close') ?>">×</button>
+</dialog>
+
+<!-- Media-Dialog -->
+<dialog id="mediaModal" class="modal">
+    <div><?= __('select_image') ?></div>
+
+    <div class="dialog-content" id="mediaModalContent">
+        <!-- Wird per JS geladen -->
+    </div>
+
+    <button type="button" class="maru-close" aria-label="<?= __('close') ?>">×</button>
+</dialog>
+
+<script>
+    const LANG = <?= json_encode(include __DIR__ . '/../lang/de.php'); ?>;
+</script>

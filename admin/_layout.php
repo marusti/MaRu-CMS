@@ -38,10 +38,6 @@ function get_current_base_url(): string
 
     return $protocol . '://' . $host . $path . '/';
 }
-
-
-
-
 function normalize_url($url) {
     return strtolower(rtrim(trim($url), '/'));
 }
@@ -101,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
       }
     })();
   </script>
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
@@ -256,6 +252,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
 <?= $content ?>
 </main>
 
+<!-- Dialoge -->
+<?php include 'includes/dialog.php'; ?>
+
 <footer role="contentinfo" aria-label="Footer">
   <small>
     © <?= date('Y') ?> | 
@@ -271,6 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
 
 <script src="assets/js/editor.js"></script>
 <script src="assets/js/core.js"></script>
+<script src="assets/js/dialog.js" defer></script>
 
 </body>
 </html>

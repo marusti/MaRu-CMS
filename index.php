@@ -75,6 +75,9 @@ $pageDefaultImageAlt = '';
 ========================== */
 
 function render_markdown($text) {
+	
+	$text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
 
     // Sicherheit: Script-Tags entfernen
     $text = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $text);
@@ -143,7 +146,13 @@ function render_markdown($text) {
 
     // Absätze nur für reinen Text
     $parts = preg_split("/\n\s*\n/", $text);
-    $text = '<p>' . implode('</p><p>', $parts) . '</p>';
+    foreach ($parts as &$part) {
+    if (!preg_match('/^\s*<.+?>/s', $part)) {
+        $part = '<p>' . $part . '</p>';
+    }
+}
+$text = implode("\n", $parts);
+
 
     // Platzhalter zurücksetzen
     foreach ($placeholders as $k => $html) {
@@ -153,6 +162,43 @@ function render_markdown($text) {
     return $text;
 }
 
+
+// ---------------------------
+// Open Graph & JSON-LD
+// ---------------------------
+
+$ogTitle = $pageTitle ?: ($settings['site_name'] ?? '');
+$ogDesc = $pageMetaDescription ?: ($settings['site_description'] ?? '');
+$ogUrl = $canonicalUrl ?? $baseUrl . '/' . ltrim($requestedPage, '/');
+$ogImage = !empty($pageDefaultImage) ? preg_replace('#^\.\./#', $baseUrl . '/', $pageDefaultImage) : ($settings['default_image'] ?? '');
+$ogType = !empty($requestedPage) ? 'article' : 'website';
+
+// Open Graph Meta Tags
+$openGraphMeta = '<meta property="og:title" content="' . htmlspecialchars($ogTitle, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+$openGraphMeta .= '<meta property="og:description" content="' . htmlspecialchars($ogDesc, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+$openGraphMeta .= '<meta property="og:url" content="' . htmlspecialchars($ogUrl, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+if ($ogImage) {
+    $openGraphMeta .= '<meta property="og:image" content="' . htmlspecialchars($ogImage, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+}
+$openGraphMeta .= '<meta property="og:type" content="' . htmlspecialchars($ogType, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+$openGraphMeta .= '<meta property="og:site_name" content="' . htmlspecialchars($settings['site_name'] ?? '', ENT_QUOTES, 'UTF-8') . '">' . "\n";
+
+// JSON-LD Structured Data
+$schemaData = [
+    "@context" => "https://schema.org",
+    "@type" => !empty($requestedPage) ? "Article" : "WebSite",
+    "name" => $ogTitle,
+    "url" => $ogUrl,
+    "description" => $ogDesc,
+];
+
+if ($ogImage) {
+    $schemaData["image"] = $ogImage;
+}
+
+$jsonLd = '<script type="application/ld+json">' . "\n";
+$jsonLd .= json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
+$jsonLd .= '</script>' . "\n";
 
 
 
@@ -188,9 +234,6 @@ if (basename($requestedPage) === 'sitemap') {
             $pageDefaultImageAlt = $pageData['default_image_alt'] ?? '';
         }
     }
-
-    require_once __DIR__ . '/lib/helpers.php';
-    $pageContent = render_galleries_in_content($pageContent);
 
 } else {
 
@@ -257,7 +300,17 @@ if (file_exists($templatePath)) {
     $canonicalLinkTag = '<link rel="canonical" href="' . $canonicalUrl . '">' . "\n";
     $robotsMetaTag = '<meta name="robots" content="' . htmlspecialchars($pageRobots, ENT_QUOTES, 'UTF-8') . '">' . "\n";
 
-    $output = str_replace('</head>', $canonicalLinkTag . $robotsMetaTag . $pluginCssLinks . '</head>', $templateHtml);
+    $output = str_replace(
+    '</head>',
+    $canonicalLinkTag 
+    . $robotsMetaTag 
+    . $pluginCssLinks 
+    . $openGraphMeta 
+    . $jsonLd 
+    . '</head>',
+    $templateHtml
+);
+
 
     /* PLACEHOLDERS */
     $output = str_replace('{{menu}}', $menuHtml, $output);
@@ -267,7 +320,7 @@ if (file_exists($templatePath)) {
         $pageDefaultImage = preg_replace('#^\.\./#', $baseUrl . '/', $pageDefaultImage);
         $altText = !empty($pageDefaultImageAlt) ? htmlspecialchars($pageDefaultImageAlt, ENT_QUOTES, 'UTF-8') : 'Artikelbild';
 
-        $imageHtml = '<img src="' . htmlspecialchars($pageDefaultImage, ENT_QUOTES, 'UTF-8') . '" alt="' . $altText . '" itemprop="image" />';
+        $imageHtml = '<img class="page-defaultimg" src="' . htmlspecialchars($pageDefaultImage, ENT_QUOTES, 'UTF-8') . '" alt="' . $altText . '" itemprop="image" />';
     } else {
         $imageHtml = '';
     }
@@ -299,8 +352,8 @@ if (file_exists($templatePath)) {
 
     /* SCRIPTS */
     $menuScript = '<script src="' . $baseUrl . '/core/assets/js/menu.js" defer></script>';
-    $galleryScript = '<script src="' . $baseUrl . '/core/assets/js/gallery.js" defer></script>';
-    $output = str_replace('</body>', $menuScript . "\n" . $galleryScript . "\n</body>", $output);
+
+    $output = str_replace('</body>', $menuScript . "\n</body>", $output);
 
     echo $output;
 

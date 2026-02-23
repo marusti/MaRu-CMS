@@ -1,16 +1,33 @@
 /* ==============================
+   Farbschema und :root Variablen
+============================== */
+:root {
+    --pale-red: #fbe4e4;         /* Sanftes, blasses Rot für den Hintergrund */
+    --soft-rose: #f1c2c2;        /* Weiches Rosé für Menüs und Hintergründe */
+    --warm-cherry: #e33e57;      /* Warmes Kirschrot für Header und Footer */
+    --deep-crimson: #b22234;     /* Tiefes Karminrot für Links und Hover-Effekte */
+    --subtle-rose: #f7d0d6;      /* Zartes Rosé für Submenüs */
+    --highlight-red: #f05f40;    /* Auffälliges Rot für Hover-Effekte im Menü */
+    --text-color: #4a1d1a;       /* Dunkles Braunrot für den Text */
+    --footer-text-color: #f1c2c2; /* Weiches Rosé für Footer-Text */
+    --link-color: #8b0000;       /* Dunkleres Rot für Links (für besseren Kontrast) */
+    --link-hover-color: #ff4d4d; /* Helles Rot für Hover-Effekte */
+}
+
+/* ==============================
    Grundlayout & Body
 ============================== */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     line-height: 1.5;
-    background: #f9f9f9;
-    color: #333;
+    background: var(--pale-red);
+    color: var(--text-color);
+    height: 100%; /* Sicherstellen, dass body die volle Höhe hat */
 }
 
 header, footer {
-    background: #333;
+    background: var(--warm-cherry);
     color: #fff;
     padding: 1rem;
     text-align: center;
@@ -25,8 +42,8 @@ header h1 {
 ============================== */
 .menu-toggle {
     display: block;
-    background: #444;
-    color: #fff;
+    background: var(--soft-rose);
+    color: var(--text-color);
     border: none;
     width: 100%;
     padding: 0.75rem 1rem;
@@ -42,17 +59,17 @@ header h1 {
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.4s ease-out;
-    background: #444;
+    background: var(--soft-rose);
 }
 
 .main-menu li {
-    border-bottom: 1px solid #555;
+    border-bottom: 1px solid #ccc;
 }
 
 .main-menu li a,
 .submenu-toggle {
     display: block;
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
     padding: 0.75rem 1rem;
 }
@@ -71,14 +88,14 @@ header h1 {
 .submenu {
     list-style: none;
     padding-left: 1rem;
-    background: #555;
+    background: var(--subtle-rose);
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out;
 }
 
 .submenu li {
-    border-bottom: 1px solid #666;
+    border-bottom: 1px solid #ccc;
 }
 
 .submenu li a {
@@ -86,7 +103,7 @@ header h1 {
 }
 
 /* ==============================
-   Zwei-Spalten-Layout
+   Zwei-Spalten-Layout (Mobile)
 ============================== */
 main {
     display: flex;
@@ -99,9 +116,8 @@ main {
     margin-bottom: 1rem;
 }
 
-.sidebar {
+aside {
     flex: 0 0 auto;
-    margin-bottom: 1rem;
 }
 
 /* ==============================
@@ -114,35 +130,48 @@ img {
 }
 
 /* ==============================
-   Desktop-Layout
+   Footer
+============================== */
+footer p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--footer-text-color);
+}
+
+/* ==============================
+   Zwei-Spalten-Layout (Desktop)
 ============================== */
 @media (min-width: 768px) {
     .menu-toggle {
         display: none;
     }
-    
+
+    /* Menü vertikal anordnen */
     .main-menu {
-        display: flex !important;
+        display: block !important;
         max-height: none !important;
-        flex-direction: row;
-        background: #333;
+        background: var(--soft-rose);
     }
 
     .main-menu li {
-        border-bottom: none;
+        border-bottom: 1px solid #ccc;
         position: relative;
     }
 
     .main-menu li a,
     .submenu-toggle {
         padding: 1rem;
+        display: block;
+        color: var(--text-color);
+        text-decoration: none;
     }
 
+    /* Submenu für Desktop */
     .submenu {
         position: absolute;
         left: 0;
         top: 100%;
-        background: #555;
+        background: var(--subtle-rose);
         max-height: none !important;
         display: none;
         min-width: 180px;
@@ -153,26 +182,61 @@ img {
         display: block;
     }
 
-    main {
-        flex-direction: row;
+    /* Layout: Sidebar und Content nebeneinander */
+    .layout {
+        display: flex;
+        flex-direction: row; /* Nebeneinander */
         gap: 1rem;
+        height: auto; /* Layout-Höhe automatisch an den Inhalt anpassen */
     }
 
+    /* Sidebar-Styling */
+    aside {
+        width: 250px;          /* Feste Breite für Sidebar */
+        background: var(--soft-rose);      /* Hintergrundfarbe sichtbar */
+        color: var(--text-color);
+        padding-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        position: sticky;      /* Sidebar bleibt fixiert beim Scrollen */
+        top: 0;                /* Sidebar bleibt oben */
+        height: auto;          /* Sidebar passt sich dem Content an */
+    }
+
+    aside nav {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    aside nav a {
+        padding: 1rem;
+        text-decoration: none;
+        color: var(--text-color);
+        border-bottom: 1px solid #444;
+        transition: background 0.3s;
+    }
+
+    aside nav a:hover {
+        background: var(--highlight-red);
+    }
+
+    /* Content-Styling */
     .content {
-        flex: 3;
-        margin-bottom: 0;
+        flex: 1; /* Der Content nimmt den restlichen Platz ein */
+        background: var(--pale-red);
+        padding: 1rem;
+        overflow-y: auto; /* Scrollen im Content-Bereich erlauben */
     }
 
-    .sidebar {
-        flex: 1;
-        margin-bottom: 0;
+    /* Link Styling */
+    a {
+        color: var(--link-color);  /* Dunkleres Rot für Links */
+        text-decoration: none;
     }
-}
 
-/* ==============================
-   Footer
-============================== */
-footer p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
+    a:hover {
+        color: var(--link-hover-color);  /* Helles Rot für Hover-Effekte */
+        text-decoration: underline;
+    }
 }

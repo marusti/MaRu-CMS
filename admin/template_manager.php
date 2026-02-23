@@ -212,13 +212,5 @@ document.getElementById('templateSearch').addEventListener('input', e => {
 </script>
 
 <?php
-// Dialog einbinden
-include 'includes/dialog.php';
-?>
-
-<!-- JavaScript für das Modal -->
-<script src="assets/js/dialog.js"></script>
-
-<?php
 $content = ob_get_clean();
 include '_layout.php';

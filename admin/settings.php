@@ -82,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['maintenance'] = isset($_POST['maintenance']);
     $settings['generate_sitemap'] = isset($_POST['generate_sitemap']);
     $settings['mod_rewrite'] = isset($_POST['mod_rewrite']);
+  $settings['content_languages'] = $_POST['content_languages'] ?? '';
 
     /* --- Base URL dynamisch --- */
     $scheme = (
@@ -112,13 +113,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($settings['mod_rewrite']) {
         $htaccessContent = <<<HTACCESS
+Options -Indexes
+
 RewriteEngine On
 RewriteBase {$rewriteBase}
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.+)$ index.php?page=$1 [QSA,L]
+
+# Admin niemals umleiten
+RewriteRule ^admin(/.*)?$ - [L]
+
+# echte Dateien direkt ausliefern
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# alles andere an index.php
+RewriteRule ^(.*)$ index.php?page=$1 [QSA,L]
 
 HTACCESS;
+
+
         file_put_contents($htaccessFile, $htaccessContent);
     } elseif (file_exists($htaccessFile)) {
         unlink($htaccessFile);
@@ -220,14 +232,16 @@ ob_start();
 
     <fieldset>
         <legend><?= __('general') ?></legend>
+        <div class="maru-settings">
         <label for="site_name"><?= __('site_name') ?>:</label>
         <input type="text" id="site_name" name="site_name"
                value="<?= htmlspecialchars($settings['site_name'] ?? '') ?>" required>
+               </div>
     </fieldset>
 
     <fieldset>
         <legend><?= __('homepage_language') ?></legend>
-
+<div class="maru-settings">
         <label for="homepage"><?= __('choose_homepage') ?>:</label>
         <select id="homepage" name="homepage" required>
             <?php foreach ($pageGroups as $category => $pages): ?>
@@ -241,7 +255,9 @@ ob_start();
                 </optgroup>
             <?php endforeach; ?>
         </select>
+        </div>
 
+<div class="maru-settings">
         <label for="language"><?= __('language') ?>:</label>
         <select id="language" name="language">
             <option value="de" <?= ($settings['language'] ?? '') === 'de' ? 'selected' : '' ?>>
@@ -251,6 +267,7 @@ ob_start();
                 <?= __('english') ?>
             </option>
         </select>
+        </div>
     </fieldset>
 
     <fieldset>
@@ -273,6 +290,17 @@ ob_start();
             <?= !empty($settings['mod_rewrite']) ? 'checked' : '' ?>>
         <label for="mod_rewrite"><?= __('enable_mod_rewrite') ?></label>
     </fieldset>
+    
+    <fieldset>
+    <legend><?= __('content_languages') ?></legend>
+    <div class="maru-settings">
+        <label for="content_languages"><?= __('content_languages_label') ?>:</label>
+        <input type="text" id="content_languages" name="content_languages" 
+               value="<?= htmlspecialchars($settings['content_languages'] ?? '') ?>" 
+               placeholder="z.B. de, en, fr">
+    </div>
+</fieldset>
+
 
     <button type="submit"><?= __('save') ?></button>
 </form>

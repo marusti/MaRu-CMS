@@ -3,10 +3,11 @@
 require_once __DIR__ . '/init.php';
 
 // Prüfen, ob Admin eingeloggt ist
-if (!isset($_SESSION['admin'])) {
+if (empty($_SESSION['admin']) || !is_string($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
+
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
@@ -20,7 +21,9 @@ if (is_readable($settingsFile)) {
     $settings = json_decode(file_get_contents($settingsFile), true) ?: [];
 }
 
-$minVersion = $settings['php_min_version'] ?? '8.1.0';
+$cmsInfo = load_cms_info();
+// PHP-Min-Version aus den CMS-Infos laden
+$minVersion = $cmsInfo['php_min_version']; 
 $phpVersionOk = version_compare(PHP_VERSION, $minVersion, '>=');
 
 $cmsRoot = realpath(__DIR__ . '/..');
@@ -71,11 +74,29 @@ function check_for_updates() {
 
     $latestVersion = ltrim($data['tag_name'], 'v');
 
-    if (version_compare($currentVersion, $latestVersion, '<')) {
-        return $latestVersion;
-    }
 
-    return null;
+if (version_compare($currentVersion, $latestVersion, '<')) {
+    return [
+        'status' => 'update_available',
+        'installed' => $currentVersion,
+        'latest' => $latestVersion
+    ];
+}
+
+if (version_compare($currentVersion, $latestVersion, '>')) {
+    return [
+        'status' => 'ahead',
+        'installed' => $currentVersion,
+        'latest' => $latestVersion
+    ];
+}
+
+return [
+    'status' => 'up_to_date',
+    'installed' => $currentVersion,
+    'latest' => $latestVersion
+];
+
 }
 
 $latestVersion = check_for_updates();
@@ -94,14 +115,6 @@ if (!$phpVersionOk) {
     include '_layout.php';
     exit;
 }
-
-
-
-
-
-
-
-
 // Setze die Variable $currentUsers auf ein leeres Array als Fallback, falls sie nicht definiert ist
 $currentUsers = [];
 
@@ -109,18 +122,14 @@ $currentUsers = [];
 $loggedInUsersFile = __DIR__ . '/../config/logged_in_users.json';
 
 // Überprüfen, ob die Datei existiert und die Daten korrekt geladen werden können
-if (file_exists($loggedInUsersFile)) {
-    $loggedInUsers = json_decode(file_get_contents($loggedInUsersFile), true);
+$currentUsers = [];
 
-    // Überprüfen, ob die JSON-Daten korrekt decodiert wurden und ein Array enthalten
-    if (is_array($loggedInUsers)) {
-        $currentUsers = $loggedInUsers; // Setze die Benutzerdaten auf $currentUsers
-    } else {
-        // Wenn die Daten keine gültige Struktur haben, setze $currentUsers auf ein leeres Array
-        $currentUsers = [];
+if (is_readable($loggedInUsersFile)) {
+    $data = json_decode(file_get_contents($loggedInUsersFile), true);
+    if (is_array($data)) {
+        $currentUsers = $data;
     }
 }
-
 
 $pageTitle = __('page_title');
 
@@ -139,18 +148,67 @@ ob_start();
             <li><strong><?= __('status') ?>:</strong> <span><?= htmlspecialchars($cmsInfo['status'] ?? '-') ?></span></li>
             <li><strong><?= __('license') ?>:</strong> <span><?= htmlspecialchars($cmsInfo['license'] ?? '-') ?></span></li>
 
+            <?php if (is_array($latestVersion)): ?>
 
-            <?php if (is_string($latestVersion)): ?>
-                <li><strong><?= __('update_available') ?>:</strong> <span class="status red"><?= htmlspecialchars($latestVersion) ?></span></li>
-            <?php elseif ($latestVersion): ?>
-                <li><strong><?= __('update_available') ?>:</strong> <span class="status green"><?= htmlspecialchars($latestVersion) ?></span></li>
-            <?php else: ?>
-                <li><strong><?= __('update_available') ?>:</strong> <span class="status green"><?= __('no_updates') ?></span></li>
-            <?php endif; ?>
+    <?php if ($latestVersion['status'] === 'update_available'): ?>
+
+        <li class="status red">
+            <strong><?= __('update_available') ?>:</strong>
+            <span class="status red">
+                <?= htmlspecialchars($latestVersion['latest']) ?>
+            </span>
+
+        </li>
+
+    <?php elseif ($latestVersion['status'] === 'ahead'): ?>
+
+        <li>
+            <strong><?= __('version_status') ?>:</strong>
+            <div style="text-align: right;"> 
+            <span class="status orange">
+                <?= __('version_ahead') ?>
+            </span>
+            <span>
+               <small>
+                    <?= __('latest_release') ?>: <?= htmlspecialchars($latestVersion['latest']) ?>
+                </small>
+            </span>
+            </div>
+        </li>
+
+    <?php elseif ($latestVersion['status'] === 'up_to_date'): ?>
+
+        <li>
+            <strong><?= __('update_available') ?>:</strong>
+            <span class="status green">
+                <?= __('no_updates') ?>
+            </span>
+        </li>
+
+    <?php endif; ?>
+
+<?php elseif ($latestVersion): ?>
+
+    <li>
+        <strong><?= __('update_available') ?>:</strong>
+        <span class="status gray">
+            <?= htmlspecialchars($latestVersion) ?>
+        </span>
+    </li>
+
+<?php else: ?>
+
+    <li>
+        <strong><?= __('update_available') ?>:</strong>
+        <span class="status orange">
+            <?= htmlspecialchars($latestVersion) ?>
+        </span>
+    </li>
+
+<?php endif; ?>
+
         </ul>
-    </section>
-    
- 
+    </section> 
     
     <section class="cms-permissions">
         <h2><?= __('permissions') ?></h2>

@@ -1,33 +1,36 @@
 <?php
 require_once __DIR__ . '/init.php';
 
+// CSRF-Funktion
 function csrf_check($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
 header('Content-Type: application/json');
 
+// Nur Admin darf löschen
 if (!isset($_SESSION['admin'])) {
     echo json_encode(['success' => false, 'error' => 'Nicht eingeloggt']);
     exit;
 }
 
+// Nur POST erlaubt
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Ungültige Methode']);
     exit;
 }
 
-if (!csrf_check($_POST['csrf_token'] ?? '')) {
-    echo json_encode(['success' => false, 'error' => 'Ungültiger CSRF-Token']);
+// CSRF prüfen
+$plugin = $_POST['plugin'] ?? '';
+$csrf   = $_POST['csrf_token'] ?? '';
+
+if (!$plugin || !csrf_check($csrf)) {
+    echo json_encode(['success' => false, 'error' => 'Ungültiger Request oder CSRF-Token']);
     exit;
 }
 
-if (empty($_POST['plugin'])) {
-    echo json_encode(['success' => false, 'error' => 'Kein Plugin angegeben']);
-    exit;
-}
-
-$plugin = basename($_POST['plugin']);
+// Plugin-Pfad ermitteln
+$plugin = basename($plugin);
 $pluginDir = __DIR__ . '/../plugins/' . $plugin;
 
 if (!is_dir($pluginDir)) {
@@ -35,19 +38,29 @@ if (!is_dir($pluginDir)) {
     exit;
 }
 
-// Plugin-Verzeichnis rekursiv löschen
+// Ordner rekursiv löschen
 function rrmdir($dir) {
-    foreach(array_diff(scandir($dir), ['.','..']) as $file) {
-        $path = "$dir/$file";
-        is_dir($path) ? rrmdir($path) : unlink($path);
+    if (!is_dir($dir)) return false;
+
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+
+    foreach ($files as $fileinfo) {
+        if ($fileinfo->isDir()) {
+            if (!rmdir($fileinfo->getRealPath())) return false;
+        } else {
+            if (!unlink($fileinfo->getRealPath())) return false;
+        }
     }
-    rmdir($dir);
+
+    return rmdir($dir);
 }
 
-try {
-    rrmdir($pluginDir);
+if (rrmdir($pluginDir)) {
     echo json_encode(['success' => true]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Fehler beim Löschen']);
+} else {
+    echo json_encode(['success' => false, 'error' => 'Fehler beim Löschen (Rechte prüfen)']);
 }
 exit;

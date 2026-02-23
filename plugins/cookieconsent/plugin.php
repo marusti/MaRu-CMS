@@ -7,41 +7,38 @@ function plugin_output_cookieconsent() {
     }
 
     $privacyUrl = $settings['privacy_url'] ?? '/datenschutz';
-    $messageTemplate = $settings['message'] ?? 'Wir verwenden Cookies, um dir das beste Erlebnis zu bieten. Mehr Infos findest du in unserer <a href="{{privacy_url}}" target="_blank" rel="noopener">Datenschutzerklärung</a>.';
+    $messageTemplate = $settings['message'] ?? 'Wir verwenden Cookies, um dir das beste Erlebnis zu bieten. Mehr Infos findest du in unserer <a href="{{privacy_url}}" target="_blank" rel="noopener" aria-label="Datenschutzerklärung (öffnet in neuem Tab)">Datenschutzerklärung</a>.';
     $buttonAcceptText = $settings['button_accept_text'] ?? 'Akzeptieren';
     $buttonRejectText = $settings['button_reject_text'] ?? 'Ablehnen';
     $cookieDurationDays = $settings['cookie_duration_days'] ?? 365;
 
     $message = str_replace('{{privacy_url}}', htmlspecialchars($privacyUrl, ENT_QUOTES), $messageTemplate);
 
-    $cookieName = 'cookie_consent_status'; // Werte: accepted, rejected, undefined
+    $cookieName = 'cookie_consent_status';
     $consentStatus = $_COOKIE[$cookieName] ?? 'undefined';
 
     ob_start();
     if ($consentStatus === 'undefined'):
 ?>
-<style>
-#cookie-consent {
-  position: fixed;
-  bottom: 1em; left: 1em; right: 1em;
-  background: #f8f9fa;
-  border: 1px solid #ccc;
-  padding: 1em;
-  z-index: 10000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  font-family: Arial, sans-serif;
-}
-#cookie-consent button {
-  margin-right: 0.5em;
-  padding: 0.4em 1em;
-  cursor: pointer;
-}
-</style>
+<div id="cookie-consent"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="cookie-consent-title">
 
-<div id="cookie-consent" role="alert" aria-live="polite" aria-label="Cookie Hinweis">
+  <h2 id="cookie-consent-title" class="visually-hidden">
+    Cookie-Einstellungen
+  </h2>
+
   <div><?= $message ?></div>
-  <button id="cookie-accept-btn"><?= htmlspecialchars($buttonAcceptText) ?></button>
-  <button id="cookie-reject-btn"><?= htmlspecialchars($buttonRejectText) ?></button>
+
+  <div class="cookie-buttons">
+    <button id="cookie-accept-btn">
+      <?= htmlspecialchars($buttonAcceptText) ?>
+    </button>
+    <button id="cookie-reject-btn">
+      <?= htmlspecialchars($buttonRejectText) ?>
+    </button>
+  </div>
 </div>
 
 <script>
@@ -49,6 +46,9 @@ function plugin_output_cookieconsent() {
   var consentName = <?= json_encode($cookieName) ?>;
   var cookieDuration = <?= json_encode($cookieDurationDays) ?>;
   var consentDiv = document.getElementById('cookie-consent');
+  var acceptBtn = document.getElementById('cookie-accept-btn');
+  var rejectBtn = document.getElementById('cookie-reject-btn');
+  var previousFocus = document.activeElement;
 
   function setCookie(name, value, days) {
     var expires = "";
@@ -61,15 +61,32 @@ function plugin_output_cookieconsent() {
     document.cookie = name + "=" + (value || "") + expires + "; path=/" + secure + "; SameSite=Lax";
   }
 
-  document.getElementById('cookie-accept-btn').addEventListener('click', function(){
-    setCookie(consentName, 'accepted', cookieDuration);
+  function closeConsent(status) {
+    setCookie(consentName, status, cookieDuration);
     consentDiv.style.display = 'none';
+    if (previousFocus) {
+      previousFocus.focus();
+    }
+  }
+
+  // Fokus beim Öffnen setzen
+  acceptBtn.focus();
+
+  acceptBtn.addEventListener('click', function(){
+    closeConsent('accepted');
   });
 
-  document.getElementById('cookie-reject-btn').addEventListener('click', function(){
-    setCookie(consentName, 'rejected', cookieDuration);
-    consentDiv.style.display = 'none';
+  rejectBtn.addEventListener('click', function(){
+    closeConsent('rejected');
   });
+
+  // ESC-Taste zum Schließen
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      closeConsent('rejected');
+    }
+  });
+
 })();
 </script>
 <?php

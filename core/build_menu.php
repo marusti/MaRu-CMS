@@ -23,25 +23,66 @@ function build_menu($categoriesPath, $pagesDir) {
         $categoryPath = rtrim($pagesDir, '/') . '/' . $categoryId;
         if (is_dir($categoryPath)) {
             $files = scandir($categoryPath);
-            foreach ($files as $file) {
-                if (pathinfo($file, PATHINFO_EXTENSION) === 'json') {
-                    $jsonPath = $categoryPath . '/' . $file;
-                    $meta = json_decode(file_get_contents($jsonPath), true);
 
-                    // Nur veröffentlichte Seiten anzeigen
-                    if (($meta['status'] ?? 'draft') !== 'published') continue;
+$pages = [];
 
-                    $pageId = $meta['id'] ?? pathinfo($file, PATHINFO_FILENAME);
-                    $title = $meta['title'] ?? ucfirst($pageId);
+foreach ($files as $file) {
 
-                    $relPath = $categoryId . '/' . $pageId;
-                    $pageUrl = $useModRewrite
-                        ? $baseUrl . '/' . $relPath
-                        : $baseUrl . '/index.php?page=' . rawurlencode($relPath);
+    if (pathinfo($file, PATHINFO_EXTENSION) !== 'json') {
+        continue;
+    }
 
-                    $menuHtml .= '<li><a href="' . htmlspecialchars($pageUrl) . '">' . htmlspecialchars($title) . '</a></li>';
-                }
-            }
+    $jsonPath = $categoryPath . '/' . $file;
+
+    $meta = json_decode(file_get_contents($jsonPath), true);
+
+    if (!is_array($meta)) {
+        continue;
+    }
+
+    // Nur veröffentlichte Seiten anzeigen
+    if (($meta['status'] ?? 'draft') !== 'published') {
+        continue;
+    }
+
+    $pageId = $meta['id'] ?? pathinfo($file, PATHINFO_FILENAME);
+
+    $pages[] = [
+
+        'id' => $pageId,
+
+        'title' => $meta['title'] ?? ucfirst($pageId),
+
+        'order' => isset($meta['order'])
+            ? (int)$meta['order']
+            : 9999
+
+    ];
+}
+
+/**
+ * Sortieren nach order
+ */
+usort($pages, fn($a, $b) => $a['order'] <=> $b['order']);
+
+/**
+ * Menü bauen
+ */
+foreach ($pages as $page) {
+
+    $relPath = $categoryId . '/' . $page['id'];
+
+    $pageUrl = $useModRewrite
+        ? $baseUrl . '/' . $relPath
+        : $baseUrl . '/index.php?page=' . rawurlencode($relPath);
+
+    $menuHtml .= '<li><a href="' .
+        htmlspecialchars($pageUrl) .
+        '">' .
+        htmlspecialchars($page['title']) .
+        '</a></li>';
+}
+
         }
 
         $menuHtml .= '</ul>';

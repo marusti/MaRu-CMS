@@ -208,19 +208,13 @@ ob_start();
 </form>
 
 
-<?php if (!$selectMode): ?>
-<form method="post" id="deleteForm">
-    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-    <button type="button" id="deleteButton" disabled>
-    <?= __('delete_selected') ?>
-</button>
 
-<?php endif; ?>
 
 <h2><?= $selectMode ? 'Verfügbare Bilder' : __('existing_files') ?></h2>
 
 <div class="file-list">
 <?php
+// Alle Dateien aus dem Verzeichnis holen, ohne nach Ordnern zu gruppieren
 $rii = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($mediaDir, FilesystemIterator::SKIP_DOTS)
 );
@@ -228,10 +222,14 @@ $rii = new RecursiveIteratorIterator(
 $files = [];
 foreach ($rii as $file) {
     if ($file->isFile()) {
-        $files[] = $file->getPathname();
-    }
+        $files[] = $file->getPathname(); // Alle Dateien in einem Array sammeln
+}
 }
 
+// Alphabetisch sortieren
+sort($files);
+
+// Jetzt die Dateien in der alphabetischen Reihenfolge anzeigen
 foreach ($files as $filePath):
     $fileName = basename($filePath);
     $relativePath = str_replace(realpath($uploadBase), '', $filePath);
@@ -248,58 +246,57 @@ foreach ($files as $filePath):
         $fileTypeAttr = 'other';
     }
 
-$ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+    $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-$iconMap = [
-    'jpg'  => 'image',
-    'jpeg' => 'image',
-    'png'  => 'image',
-    'gif'  => 'image',
-    'webp' => 'image',
-    'txt'  => 'txt',
-    'pdf'  => 'pdf',
-    'zip'  => 'zip',
-    'rar'  => 'zip',
-];
+    $iconMap = [
+        'jpg'  => 'image',
+        'jpeg' => 'image',
+        'png'  => 'image',
+        'gif'  => 'image',
+        'webp' => 'image',
+        'txt'  => 'txt',
+        'pdf'  => 'pdf',
+        'zip'  => 'zip',
+        'rar'  => 'zip',
+    ];
 
-$iconName = $iconMap[$ext] ?? 'file';
-$iconSvg  = getIcon($iconName);
+    $iconName = $iconMap[$ext] ?? 'file';
+    $iconSvg  = getIcon($iconName);
 
-$thumb = '<div class="file-icon preview-trigger" style="cursor:pointer;">' . $iconSvg . '</div>';
+    $thumb = '<div class="file-icon preview-trigger" style="cursor:pointer;">' . $iconSvg . '</div>';
 
-// Alt + Caption nur für Bilder
-$dataAlt = $iconName === 'image' ? htmlspecialchars($altTexts[$fileName] ?? '') : '';
-$dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? '') : '';
+    // Alt + Caption nur für Bilder
+    $dataAlt = $iconName === 'image' ? htmlspecialchars($altTexts[$fileName] ?? '') : '';
+    $dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? '') : '';
 
 ?>
-    <div class="maru-card file-item"
-     data-type="<?= in_array($iconName, ['txt', 'pdf', 'zip']) ? 'text' : $iconName ?>" 
-     data-url="<?= htmlspecialchars($fileUrl) ?>"
-     data-alt="<?= $dataAlt ?>"
-     data-caption="<?= $dataCaption ?>"
-     tabindex="0"
-     role="group"
-     aria-label="Datei <?= htmlspecialchars($fileName) ?>">
-
-
-    
-
-    <div class="preview-trigger"
-         role="button"
+    <div class="file-item"
+         data-type="<?= in_array($iconName, ['txt', 'pdf', 'zip']) ? 'text' : $iconName ?>" 
+         data-url="<?= htmlspecialchars($fileUrl) ?>"
+         data-alt="<?= $dataAlt ?>"
+         data-caption="<?= $dataCaption ?>"
          tabindex="0"
-         aria-label="Vorschau für <?= htmlspecialchars($fileName) ?> öffnen">
-        <?= $thumb ?>
-    </div>
+         role="group"
+         aria-label="Datei <?= htmlspecialchars($fileName) ?>">
 
-    <div class="filename"><?= htmlspecialchars($fileName) ?></div>
-<?php if (!$selectMode): ?>
-    <input type="checkbox"
-       name="delete_files[]"
-       value="<?= htmlspecialchars(str_replace(realpath($uploadBase) . '/', '', $filePath)) ?>"
-       class="delete-checkbox"
-       aria-label="Datei <?= htmlspecialchars($fileName) ?> zum Löschen auswählen">
-    <?php endif; ?>
-</div>
+        <div class="preview-trigger"
+             role="button"
+             tabindex="0"
+             aria-label="Vorschau für <?= htmlspecialchars($fileName) ?> öffnen">
+            <?= $thumb ?>
+        </div>
+
+        <div class="filename"><?= htmlspecialchars($fileName) ?></div>
+        <?php if (!$selectMode): ?>
+            <button type="button" class="maru-delete"
+                    data-template="<?= htmlspecialchars(str_replace(realpath($uploadBase) . '/', '', $filePath)) ?>"
+                    data-title="<?= __('delete') ?>"
+                    data-message="<?= __('delete_confirm_generic') ?>"
+                    aria-label="<?= __('delete_file') ?> <?= htmlspecialchars($fileName) ?>">
+                <?= getIcon('delete') ?>
+            </button>
+        <?php endif; ?>
+    </div>
 
 <?php endforeach; ?>
 </div>
@@ -311,14 +308,10 @@ $dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? 
 </form>
 <?php endif; ?>
 
-<?php
-// Dialog einbinden
-include 'includes/dialog.php';
-?>
-
-
-<!-- JavaScript für das Modal -->
-<script src="assets/js/dialog.js"></script>
+<form id="deleteTemplateForm" method="post" style="display:none;">
+    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+    <input type="hidden" name="delete_files[]" id="deleteTemplateInput">
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -368,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialog = document.getElementById('imagePreviewDialog');
     const previewImg = document.getElementById('previewImage');
     const previewText = document.getElementById('previewText');
-    const closeBtn = document.getElementById('modalClose');
+ //   const closeBtn = document.getElementById('modalClose');
     const fileNameEl = document.getElementById('fileName');
     const fileSizeEl = document.getElementById('fileSize');
     const fileDimensionsEl = document.getElementById('fileDimensions');
@@ -444,15 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Dialog schließen
-    function closeDialog() {
-        dialog.close();
-        document.body.focus({ preventScroll: true });
-    }
-    closeBtn.addEventListener('click', e => { e.preventDefault(); closeDialog(); });
-    dialog.addEventListener('keydown', e => { if (e.key === 'Escape') closeDialog(); });
-    dialog.addEventListener('click', e => { if (e.target === dialog) closeDialog(); });
-
     // Alt + Caption speichern
     saveMetaBtn.addEventListener('click', async () => {
         const file = altTextInput.dataset.filename;
@@ -527,53 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const deleteButton = document.getElementById('deleteButton');
-    const deleteDialog = document.getElementById('deleteModal');
-    const confirmBtn = document.getElementById('modalConfirm');
-    const cancelBtn = document.getElementById('modalCancel');
-    const closeBtn = document.getElementById('modalClose');
-    const deleteForm = document.getElementById('deleteForm');
-
-    if (!deleteButton || !deleteDialog) return;
-
-    // Öffnen des Dialogs
-    deleteButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        deleteDialog.showModal();
-        deleteDialog.focus(); // Fokus auf Dialog für Screenreader
-    });
-
-    // Bestätigen → Formular absenden
-    confirmBtn.addEventListener('click', () => {
-        deleteDialog.close();
-        deleteForm.submit();
-    });
-
-    // Dialog schließen (Cancel oder Close Button)
-    function closeDialog() {
-        deleteDialog.close();
-        deleteButton.focus(); // Fokus zurück auf den auslösenden Button
-    }
-
-    cancelBtn.addEventListener('click', closeDialog);
-    closeBtn.addEventListener('click', closeDialog);
-
-    // ESC schließt Dialog
-    deleteDialog.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeDialog();
-    });
-
-    // Klick außerhalb des Dialogs schließt ihn
-    deleteDialog.addEventListener('click', e => {
-        if (e.target === deleteDialog) closeDialog();
-    });
-});
-
-
-
 
 </script>
 

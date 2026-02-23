@@ -1,59 +1,87 @@
 <?php
+
 require_once __DIR__ . '/init.php';
 
-if (!isset($_SESSION['admin'])) {
+if (empty($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
 
 $pagesDir = __DIR__ . '/../content/pages';
-$id = $_GET['id'] ?? null;
-$category = $_GET['category'] ?? null;
-$dir = $_GET['dir'] ?? null;
 
-if (!$id || !$dir) {
+$id       = $_GET['id']       ?? '';
+$category = $_GET['category'] ?? '';
+$dir      = $_GET['dir']      ?? '';
+
+if ($id === '' || !in_array($dir, ['up', 'down'], true)) {
     header('Location: content_manager.php?error=page');
     exit;
 }
 
-// Alle Pages der Kategorie einlesen
-$categoryDir = $category ? $pagesDir . '/' . $category : $pagesDir;
-$files = glob($categoryDir . '/*.json');
+$categoryDir = $category !== ''
+    ? $pagesDir . '/' . $category
+    : $pagesDir;
 
-// Pages sortieren nach Dateiname (oder nach deiner bestehenden Reihenfolge)
-$pages = [];
-foreach ($files as $file) {
-    $pages[] = basename($file, '.json');
+if (!is_dir($categoryDir)) {
+    header('Location: content_manager.php?error=page');
+    exit;
 }
 
-// Position der aktuellen Page finden
-$index = array_search($id, $pages);
+$files = glob($categoryDir . '/*.json');
+
+$pages = [];
+
+foreach ($files as $file) {
+
+    $meta = json_decode(file_get_contents($file), true);
+
+    $pages[] = [
+
+        'id'    => basename($file, '.json'),
+
+        'order' => isset($meta['order']) ? (int)$meta['order'] : 9999
+
+    ];
+}
+
+usort($pages, fn($a, $b) => $a['order'] <=> $b['order']);
+
+$ids = array_column($pages, 'id');
+
+$index = array_search($id, $ids, true);
+
 if ($index === false) {
     header('Location: content_manager.php?error=page');
     exit;
 }
 
-// Verschieben
 if ($dir === 'up' && $index > 0) {
-    $tmp = $pages[$index - 1];
-    $pages[$index - 1] = $pages[$index];
-    $pages[$index] = $tmp;
-} elseif ($dir === 'down' && $index < count($pages) - 1) {
-    $tmp = $pages[$index + 1];
-    $pages[$index + 1] = $pages[$index];
-    $pages[$index] = $tmp;
+
+    [$pages[$index - 1], $pages[$index]] =
+    [$pages[$index], $pages[$index - 1]];
+
 }
 
-// Reihenfolge in den Dateien speichern (Optional: wenn du eine Reihenfolge in JSON speichern willst)
-foreach ($pages as $order => $pageId) {
-    $filePath = $categoryDir . '/' . $pageId . '.json';
-    if (file_exists($filePath)) {
-        $meta = json_decode(file_get_contents($filePath), true);
-        $meta['order'] = $order;
-        file_put_contents($filePath, json_encode($meta, JSON_PRETTY_PRINT));
-    }
+elseif ($dir === 'down' && $index < count($pages) - 1) {
+
+    [$pages[$index + 1], $pages[$index]] =
+    [$pages[$index], $pages[$index + 1]];
 }
 
-header('Location: content_manager.php?success=page');
+foreach ($pages as $order => $page) {
+
+    $filePath = $categoryDir . '/' . $page['id'] . '.json';
+
+    $meta = json_decode(file_get_contents($filePath), true);
+
+    $meta['order'] = $order;
+
+    file_put_contents(
+        $filePath,
+        json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+    );
+}
+
+header('Location: content_manager.php');
+
 exit;
-

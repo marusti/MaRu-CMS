@@ -46,8 +46,8 @@ ob_start();
 <?php foreach ($categories as $index => $cat): ?>
 <div class="maru-card category-card">
     <div class="category-header">
-        <span id="cat-<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></span>
-        <div>
+        <span id="cat-<?= $cat['id'] ?>" class="cat-name"><?= htmlspecialchars($cat['name']) ?></span>
+        <div class="page-actions">
             <a href="edit_category.php?id=<?= urlencode($cat['id']) ?>"
    aria-label="<?= __('edit_category') ?>"
    title="<?= __('edit_category') ?>">
@@ -99,31 +99,28 @@ ob_start();
 
 </div>
 
-<?php
-// Dialog einbinden
-include 'includes/dialog.php';
-?>
-
-
-<!-- JavaScript für das Modal -->
-<script src="assets/js/dialog.js"></script>
-
 <script>
-// JavaScript für ID-Generierung und Modal
-function generateId() {
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ID-Generierung für neue Kategorie
+    function generateId() {
+        const nameInput = document.getElementById('name');
+        const idInput = document.getElementById('id');
+        const name = nameInput.value.toLowerCase()
+            .replace(/ä/g, 'ae')
+            .replace(/ö/g, 'oe')
+            .replace(/ü/g, 'ue')
+            .replace(/ß/g, 'ss')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        idInput.value = name;
+    }
+
     const nameInput = document.getElementById('name');
-    const idInput = document.getElementById('id');
-    const name = nameInput.value.toLowerCase()
-        .replace(/ä/g, 'ae')
-        .replace(/ö/g, 'oe')
-        .replace(/ü/g, 'ue')
-        .replace(/ß/g, 'ss')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-    idInput.value = name;
-}
+    nameInput.addEventListener('input', generateId);
 
-
+    // Alles andere, was Modal betrifft, übernimmt jetzt dialog.js
+});
 </script>
 
 

@@ -3,13 +3,23 @@
 $settingsFile = __DIR__ . '/../../config/settings.json';
 $settings = json_decode(file_get_contents($settingsFile), true);
 $baseUrl = $settings['base_url'] ?? ''; // Standardwert, falls keine Basis-URL gesetzt ist
+$siteName = $settings['site_name'] ?? 'Meine Website';
+
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($pageTitle ?? 'Willkommen') ?></title>
+    <title>
+<?= htmlspecialchars(
+    !empty($pageTitle)
+        ? $pageTitle . ' | ' . $siteName
+        : $siteName,
+    ENT_QUOTES,
+    'UTF-8'
+) ?>
+</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php if (!empty($pageMetaDescription)): ?>
         <meta name="description" content="<?= htmlspecialchars($pageMetaDescription) ?>">
@@ -23,16 +33,16 @@ $baseUrl = $settings['base_url'] ?? ''; // Standardwert, falls keine Basis-URL g
 <body>
 
 <header>
-    <h1><?= htmlspecialchars($pageTitle ?? 'Willkommen') ?></h1>
+    <h1><?= htmlspecialchars($siteName) ?></h1>
 </header>
 
 <div class="layout">
     <aside>
     <!-- Hamburger-Button immer sichtbar -->
-    <button class="menu-toggle" onclick="toggleMenu()">☰ Menü</button>
-    <nav role="navigation" aria-label="Hauptmenü">
+    <button class="menu-toggle">☰ Menü</button>
+
         {{menu}}
-    </nav>
+
 </aside>
 
     <main>
@@ -49,7 +59,6 @@ $baseUrl = $settings['base_url'] ?? ''; // Standardwert, falls keine Basis-URL g
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Hamburger Menü Toggle
     const menuToggle = document.querySelector('.menu-toggle');
     const mainMenu = document.querySelector('.main-menu');
 
@@ -59,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (isOpen) {
                 mainMenu.style.maxHeight = "0";
             } else {
-                mainMenu.style.maxHeight = mainMenu.scrollHeight + "px";
+                mainMenu.style.maxHeight = mainMenu.scrollHeight + "px"; // Dynamische Höhe
             }
         });
     }
@@ -69,18 +78,19 @@ document.addEventListener("DOMContentLoaded", function() {
     submenuButtons.forEach(button => {
         button.addEventListener('click', function() {
             const submenu = button.nextElementSibling;
+            const menuItem = button.closest('.menu-item');
+            
             if (!submenu) return;
 
-            // Hidden entfernen, falls gesetzt
-            if (submenu.hasAttribute('hidden')) submenu.removeAttribute('hidden');
-
-            const isOpen = submenu.style.maxHeight && submenu.style.maxHeight !== "0px";
-            if (isOpen) {
+            // Menüpunkt mit Untermenü öffnet oder schließt
+            if (submenu.style.maxHeight && submenu.style.maxHeight !== "0px") {
                 submenu.style.maxHeight = "0";
                 button.setAttribute('aria-expanded', 'false');
+                menuItem.classList.remove('open');
             } else {
-                submenu.style.maxHeight = submenu.scrollHeight + "px";
+                submenu.style.maxHeight = submenu.scrollHeight + "px"; // Dynamische Höhe
                 button.setAttribute('aria-expanded', 'true');
+                menuItem.classList.add('open');
             }
         });
     });
@@ -92,6 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
         sub.style.transition = "max-height 0.3s ease-out";
     });
 });
+
 </script>
 
 

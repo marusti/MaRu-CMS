@@ -126,9 +126,9 @@ html.dark-mode #dropZone {
 
 /* File Items */
 html.dark-mode .file-item {
-  background: #1e1e1e;
+/*  background: #1e1e1e;
   border: 1px solid #333;
-  color: #ddd;
+  color: #ddd;*/
 }
 
 html.dark-mode .file-item:hover {
@@ -420,6 +420,11 @@ input.invalid, select.invalid {
 .file-item {
 display: flex;
 align-items: center;
+border-bottom: 1px solid #ccc
+}
+
+.file-item:last-child {
+border-bottom: none
 }
 
 .image-dialog {
@@ -583,14 +588,18 @@ html.dark-mode .drop-zone {
     align-items: center;
 }
 
+.cat-name {
+flex: 2
+}
+
 /* --- Badges --- */
 .badge {
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     font-size: .85em;
-    font-weight: bold;
-    color: #fff;
+    font-weight: 600;
+    color: var(--text-color-dark);
 }
 .badge-success { background: #27ae60; }
 .badge-warning { background: #e67e22; }
@@ -604,10 +613,9 @@ html.dark-mode .drop-zone {
 }
 .page-entry:last-child { border-bottom: none; }
 
-.page-actions a {
-    margin-left: .5em;
-    text-decoration: none;
-    color: #3498db;
+.page-actions {
+display: flex;
+gap: 10px
 }
 .page-actions a.delete { color: #e74c3c; }
 
@@ -675,17 +683,6 @@ html.dark-mode .drop-zone {
         outline: none;
     }
 
-    #content-manage button {
-      /*  background-color: #3498db;*/
-      /*  color: white;*/
-        border: none;
-        padding: 0.4em 0.8em;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: background-color 0.3s ease;
-        font-size: 0.9em;
-    }
 
     #content-manage button:hover {
         background-color: #2980b9;
@@ -700,7 +697,7 @@ html.dark-mode .drop-zone {
     }
 
     #content-manage .page-entry strong {
-        font-weight: 600;
+     /*   font-weight: 600;*/
      /*   color: #2c3e50;*/
     }
 
@@ -710,10 +707,7 @@ html.dark-mode .drop-zone {
     }
 
     #content-manage a {
-    /*    color: #3498db;*/
-        text-decoration: none;
-        margin-left: 0.5em;
-        font-size: 0.9em;
+
     }
 
     #content-manage a:hover {
@@ -835,8 +829,16 @@ h1 {
         color: #e74c3c;
     }
     
+.status.green {
+        color: #27ae60;
+    }
+    .status.orange {
+        color: orange;
+    }
+    
+    
      form {
-        margin-top: 2rem;
+    /*    margin-top: 2rem;*/
     }
 
    textarea {
@@ -1083,11 +1085,7 @@ button.maru-delete:hover {
     }
 
     form.user-card, .user-card {
-  /*      background: white;*/
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-        padding: 15px 20px;
-        margin-bottom: 20px;
+
     }
     form.user-card.create-card label,
     form.user-card.create-card input,
@@ -1105,15 +1103,13 @@ button.maru-delete:hover {
     }   
 
     .users-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
+ 
     }
 
     .user-card {
-        flex: 1 1 300px;
-        display: flex;
-        flex-direction: column;
+    /*    flex: 1 1 300px;*/
+       display: flex;
+    /*    flex-direction: column;*/
         justify-content: space-between;
     }
     .user-info {
@@ -1258,6 +1254,7 @@ min-height: 300px;
 
     }
     input[type="text"], input[type="password"],select {
+    	background: var(--bg-color-light);
         width: 100%;
         max-width: 400px;
         padding: 6px;
@@ -1425,10 +1422,14 @@ dialog.modal {
 }
 
 
-#modalClose {
+dialog .maru-close {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
+}
+
+dialog #modalTitle {
+font-weight: 600
 }
 
 .tabs {
@@ -1437,14 +1438,11 @@ dialog.modal {
     gap: 5px;
 }
 .tabs button {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    background: #eee;
-    cursor: pointer;
+opacity: .5
 }
 .tabs button.active {
-    background: white;
-    border-bottom: 1px solid white;
+    opacity: 1;
+/*    border-bottom: 1px solid white;*/
 }
 .tab-content {
     display: none;
@@ -1464,7 +1462,7 @@ button {
   color: #ffffff;
   background-color: var(--secondary-color);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   text-align: center;
   text-decoration: none;
@@ -1496,6 +1494,9 @@ button[aria-disabled="true"] {
   pointer-events: none;
 }
 
+/*Settings*/
+
+.maru-settings {display: flex;;justify-content: space-between;}
 
 /* Responsive Layout */
 @media (min-width: 768px) {

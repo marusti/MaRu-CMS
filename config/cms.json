@@ -1,6 +1,7 @@
 {
     "name": "MaRu CMS",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "status": "alpha",
-    "license": "MIT"
+    "license": "MIT",
+    "php_min_version": "8.1.0"
 }

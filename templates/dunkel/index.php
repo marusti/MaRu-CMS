@@ -3,13 +3,23 @@
 $settingsFile = __DIR__ . '/../../config/settings.json';
 $settings = json_decode(file_get_contents($settingsFile), true);
 $baseUrl = $settings['base_url'] ?? ''; // Standardwert, falls keine Basis-URL gesetzt ist
+$siteName = $settings['site_name'] ?? 'Meine Website';
+
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($pageTitle ?? 'Willkommen') ?></title>
+    <title>
+<?= htmlspecialchars(
+    !empty($pageTitle)
+        ? $pageTitle . ' | ' . $siteName
+        : $siteName,
+    ENT_QUOTES,
+    'UTF-8'
+) ?>
+</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php if (!empty($pageMetaDescription)): ?>
         <meta name="description" content="<?= htmlspecialchars($pageMetaDescription) ?>">

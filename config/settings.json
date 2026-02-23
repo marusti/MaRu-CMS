@@ -3,7 +3,7 @@
     "thumb_height": 200,
     "homepage": "erste/erste-seite",
     "language": "de",
-    "site_name": "Meine Webseite",
+    "site_name": "MaRu CMS",
     "template": "default",
     "maintenance": false,
     "base_url": "http://localhost/dev/chatgp/flatfile",

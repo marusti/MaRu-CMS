@@ -332,50 +332,21 @@ document.querySelectorAll('#toolbar [data-cmd]').forEach(btn=>{
 
 const baseUrl = '<?= htmlspecialchars($settings['base_url']) ?>';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Öffnen des Dialogs, wenn der Button geklickt wird
-    document.getElementById('selectImageBtn').addEventListener('click', () => {
-        const dialog = document.getElementById('imageDialog');
-        dialog.showModal();  // Öffnet den Dialog
-        loadImageList();  // Lädt den Inhalt der uploads_list.php in den Dialog
-    });
+document.getElementById('selectImageBtn').addEventListener('click', () => {
 
-    // Schließen des Dialogs, wenn der Schließen-Button geklickt wird
-    document.getElementById('closeDialogBtn').addEventListener('click', () => {
-        const dialog = document.getElementById('imageDialog');
-        dialog.close();  // Schließt den Dialog
-    });
+    openMediaModal(
+        baseUrl + '/admin/uploads_list.php',
+        function(src) {
+            const imageInput = document.getElementById('default_image');
+            const imagePreview = document.getElementById('imagePreview');
 
-    // Funktion zum Laden des Inhalts von uploads_list.php in den Dialog
-    function loadImageList() {
-        const dialogContent = document.getElementById('imageDialogContent');
+            imageInput.value = src;
+            imagePreview.src = src;
+            imagePreview.style.display = 'block';
+        }
+    );
 
-        // Mit Fetch den Inhalt von uploads_list.php laden
-        fetch(baseUrl + '/admin/uploads_list.php')  // Achte darauf, dass der Name korrekt ist!
-            .then(response => {
-                if (!response.ok) {
-                    console.error('Fehler beim Laden der uploads_list.php:', response.statusText);
-                    return;
-                }
-                return response.text();
-            })
-            .then(data => {
-                dialogContent.innerHTML = data;  // Setzt den Inhalt in den Dialog
-
-                // Hier sorgen wir dafür, dass nach dem Laden der Bilder, die Funktion selectImage verfügbar bleibt
-                document.querySelectorAll('.image-grid img').forEach(img => {
-                    img.addEventListener('click', function() {
-                        selectImage(this.src);  // Aufruf der selectImage Funktion
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Fehler beim Laden von uploads_list.php:', error);
-            });
-    }
 });
-
-
 
 
 

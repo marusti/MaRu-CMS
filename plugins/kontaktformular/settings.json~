@@ -1,8 +1,0 @@
-{
-  "empfaenger": "marustiwebdesign@gmail.com",
-  "standard_betreff": "Kontaktformular-Anfrage",
-  "enable_copy_to_sender": true,
-  "enable_honeypot": true,
-  "erfolgsmeldung": "Vielen Dank, Ihre Nachricht wurde erfolgreich gesendet.",
-  "fehlermeldung": "Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
-}

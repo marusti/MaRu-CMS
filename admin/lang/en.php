@@ -22,7 +22,6 @@ return [
     'dashboard' => 'Dashboard',
     'content' => 'Content',
     'filemanager' => 'Files',
-    'gallery_admin' => 'Galleries',
     'users' => 'Users',
     'settings' => 'Settings',
     'templates' => 'Templates',
@@ -150,9 +149,6 @@ return [
 
     'select_image' => 'Select image',
     'image_preview' => 'Image preview',
-
-    'manage_galleries' => 'Manage galleries',
-    'all_galleries' => 'All galleries',
 
     'manage_users' => 'Manage users',
     'create_user' => 'Create new user',

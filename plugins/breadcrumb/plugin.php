@@ -2,33 +2,40 @@
 // plugins/breadcrumb/plugin.php
 
 function plugin_output_breadcrumb(array $options = []) {
-    // Optionale Parameter mit Defaults
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    ob_start();
+
+    // Optionale Parameter
     $separator = $options['separator'] ?? ' / ';
     $homeName = $options['homeName'] ?? 'Startseite';
 
-    // Einstellungen laden
+    // Core-Einstellungen laden
     $settingsPath = __DIR__ . '/../../config/settings.json';
     $settings = file_exists($settingsPath) ? json_decode(file_get_contents($settingsPath), true) : [];
-
     $baseUrl = rtrim($settings['base_url'] ?? '', '/');
     $useModRewrite = !empty($settings['mod_rewrite']);
-    
-    // Pfad ermitteln
-    if (!empty($_GET['page'])) {
+
+    // Aktuelle Seite bestimmen (Markdown- oder Template-Kontext)
+    global $requestedPage;
+    if (!empty($options['requestedPage'])) {
+        $path = trim($options['requestedPage'], '/');
+    } elseif (!empty($requestedPage)) {
+        $path = trim($requestedPage, '/');
+    } elseif (!empty($_GET['page'])) {
         $path = trim($_GET['page'], '/');
-        $segments = $path === '' ? [] : explode('/', $path);
     } else {
         $basePath = parse_url($baseUrl, PHP_URL_PATH);
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        if (strpos($uri, $basePath) === 0) {
-            $relativePath = substr($uri, strlen($basePath));
-        } else {
-            $relativePath = $uri;
-        }
-        $relativePath = trim($relativePath, '/');
-        $segments = $relativePath === '' ? [] : explode('/', $relativePath);
+        $relativePath = (strpos($uri, $basePath) === 0) ? substr($uri, strlen($basePath)) : $uri;
+        $path = trim($relativePath, '/');
     }
 
+    $segments = $path === '' ? [] : explode('/', $path);
+
+    // Breadcrumb-Array erstellen
     $breadcrumbs = [];
     $breadcrumbs[] = ['label' => $homeName, 'url' => $baseUrl ?: '/'];
 
@@ -43,23 +50,19 @@ function plugin_output_breadcrumb(array $options = []) {
         $breadcrumbs[] = ['label' => ucfirst($segment), 'url' => $url];
     }
 
-    // CSS (Separator wird über ::before eingefügt, außer beim ersten Element)
-    $html = '<nav aria-label="Breadcrumb">
-  <ol class="breadcrumb">';
-
-
+    // HTML-Ausgabe
+    echo '<nav aria-label="Breadcrumb"><ol class="breadcrumb">';
     $count = count($breadcrumbs);
     foreach ($breadcrumbs as $i => $crumb) {
         $label = htmlspecialchars($crumb['label']);
         $url = htmlspecialchars($crumb['url']);
         if ($i + 1 === $count) {
-            $html .= '<li aria-current="page">' . $label . '</li>';
+            echo '<li aria-current="page">' . $label . '</li>';
         } else {
-            $html .= '<li><a href="' . $url . '">' . $label . '</a></li>';
+            echo '<li><a href="' . $url . '">' . $label . '</a></li>';
         }
     }
-
-    $html .= "</ol>\n</nav>\n";
+    echo '</ol></nav>';
 
     // JSON-LD für strukturierte Daten
     $itemListElements = [];
@@ -71,14 +74,13 @@ function plugin_output_breadcrumb(array $options = []) {
             'item' => $crumb['url'],
         ];
     }
-
     $jsonLd = [
         '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
         'itemListElement' => $itemListElements,
     ];
 
-    $html .= '<script type="application/ld+json">' . json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>';
+    echo '<script type="application/ld+json">' . json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>';
 
-    return $html;
+    return ob_get_clean();
 }
