@@ -17,5 +17,6 @@
     ],
     "generate_sitemap": true,
     "mod_rewrite": true,
-    "cms_path": "/var/www/html/dev/chatgp/flatfile"
+    "cms_path": "/var/www/html/dev/chatgp/flatfile",
+    "content_languages": ""
 }

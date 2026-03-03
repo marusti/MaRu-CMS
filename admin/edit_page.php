@@ -227,16 +227,6 @@ ob_start();
     </div>
 </form>
 
-<!-- Dialog-Element für die Bildauswahl -->
-<dialog id="imageDialog">
-    <h1><?= __('select_image') ?></h1>
-    <div id="imageDialogContent">
-        <!-- Der Inhalt von uploads_list.php wird hier geladen -->
-    </div>
-    <button id="closeDialogBtn">Schließen</button>
-</dialog>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
     const ED = new CMS_Editor('editor');

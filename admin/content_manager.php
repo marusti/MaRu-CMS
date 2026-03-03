@@ -175,6 +175,9 @@ ob_start();
 
 <h1><?= htmlspecialchars(__('manage_content')) ?></h1>
 
+<!-- Search filter -->
+<label for="page-search"><?= __('search_pages') ?>:</label>
+<input type="text" id="page-search" class="admin-search" placeholder="<?= htmlspecialchars(__('search_pages_placeholder')) ?>" />
 
 <!-- Neue Seite -->
 <a href="edit_page.php" class="btn-create">
@@ -246,17 +249,15 @@ title="<?= htmlspecialchars(__('edit')) ?>"
 
 
 <!-- DELETE (dialog.js nutzt data-url) -->
-<a
-href="#"
-class="icon-button"
+<button class="maru-delete delete-page"
 data-url="delete_page.php?id=<?= urlencode($page['id']) ?>&category=<?= urlencode($page['category']) ?>"
 data-title="<?= htmlspecialchars(__('delete_page'), ENT_QUOTES) ?>"
-data-message="<?= htmlspecialchars(__('delete_page_confirm'), ENT_QUOTES) ?>"
+data-message="<?= htmlspecialchars(__('delete_confirm_page'), ENT_QUOTES) ?>"
 title="<?= htmlspecialchars(__('delete')) ?>"
 aria-label="<?= htmlspecialchars(__('delete')) ?>"
 >
 <?= getIcon('delete') ?>
-</a>
+</button>
 
 
 <!-- MOVE UP -->
@@ -309,6 +310,29 @@ title="<?= htmlspecialchars(__('move_down')) ?>"
 <?php endforeach; ?>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('page-search');
+    const pages = document.querySelectorAll('.page-entry');
+
+    searchInput.addEventListener('input', function () {
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        // Loop through all pages and hide those that don't match the search term
+        pages.forEach(function (page) {
+            const title = page.querySelector('.cat-name strong').textContent.toLowerCase();
+            const category = page.querySelector('.cat-name small').textContent.toLowerCase();
+
+            if (title.includes(searchTerm) || category.includes(searchTerm)) {
+                page.style.display = '';  // Show matching pages
+            } else {
+                page.style.display = 'none';  // Hide non-matching pages
+            }
+        });
+    });
+});
+</script>
 
 <?php
 

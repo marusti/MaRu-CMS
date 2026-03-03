@@ -235,6 +235,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
 </div>
 <?php endif; ?>
 
+<?php
+    // Meldungen ausgeben, falls vorhanden
+    if (!empty($messages)) {
+        renderMessages($messages);
+    }
+    ?>
+
     <?php if ($baseUrlMismatch): ?>
         <form method="post" class="warning baseurl-warning">
             <strong><?= __('warning') ?>:</strong>

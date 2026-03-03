@@ -12,6 +12,12 @@ if (!isset($_SESSION['csrf_token'])) {
 // Helfer laden
 require_once __DIR__ . '/../lib/helpers.php';
 
+// **Zentrale Meldungsfunktionen laden**
+require_once __DIR__ . '/includes/messages.php';
+
+// $messages global initialisieren
+$messages = [];
+
 // Settings laden
 $settingsFile = __DIR__ . '/../config/settings.json';
 $settings = [];

@@ -84,7 +84,7 @@ return [
     'create_new_page' => 'Neue Seite erstellen',
     'edit' => 'Bearbeiten',
 'delete_page' => 'Seite löschen',
-    'delete_page_confirm' => 'Seite wirklich löschen?',
+
         'status_published' => 'Veröffentlicht',
     'status_draft' => 'Entwurf',
 'default_image' => 'Artikelbild',
@@ -103,6 +103,10 @@ return [
 'category_not_found' => 'Kategorie nicht gefunden.',
 'category_renamed_successfully' => 'Kategorie erfolgreich umbenannt.',
 
+    'category_created_successfully' => 'Kategorie "%s" wurde erfolgreich erstellt oder bearbeitet.',
+    'category_creation_failed' => 'Fehler beim Erstellen oder Bearbeiten der Kategorie "%s". Bitte versuchen Sie es erneut.',
+    'category_deleted_successfully' => 'Kategorie "%s" wurde erfolgreich gelöscht.',
+    'category_deletion_failed' => 'Fehler beim Löschen der Kategorie "%s". Bitte versuchen Sie es erneut.',
 
     
          'edit_page' => 'Seite bearbeiten',
@@ -151,7 +155,6 @@ return [
     
         'manage_files' => 'Dateien verwalten',
     'upload_files' => 'Dateien hochladen',
-    'drop_files_here' => 'Dateien hierher ziehen',
     'existing_files' => 'Dateien im Verzeichnis',
     'delete_selected' => 'Ausgewählte löschen',
     'confirm_delete' => 'Ausgewählte Dateien wirklich löschen?',
@@ -161,6 +164,13 @@ return [
     'file_exists' => 'Datei existiert bereits: %s',
     'file_uploaded' => 'Datei hochgeladen: %s',
     'upload_error' => 'Fehler beim Hochladen: %s',
+    'file_info' => 'Dateiinfo',
+    'size' => 'Größe',
+    'dimensions' => 'Dimensionen',
+    'alt_text' => 'Alt-Text',
+    'alt_text_placeholder' => 'Alt-Text eingeben',
+    'caption' => 'Bildunterschrift',
+'caption_placeholder' => 'Bildunterschrift eingeben',
     
     'select_image' => 'Bild auswählen',
     'image_preview' => 'Bild Vorschau',
@@ -187,6 +197,7 @@ return [
     'password_invalid' => 'Passwort muss mindestens 8 Zeichen lang sein, einen Großbuchstaben und eine Zahl enthalten und darf keine Sonderzeichen enthalten.',
     'username_invalid' => 'Benutzername muss mindestens 5 Zeichen lang sein und darf nicht bereits existieren.',
     'editor_change_own_password_only' => 'Editor darf nur das eigene Passwort ändern.',
+    'password_mismatch' => 'Die Passwörter stimmen nicht überein.',
 
     'cancel' => 'Abbrechen',
     
@@ -233,17 +244,17 @@ return [
     'zip_open_error' => 'ZIP konnte nicht geöffnet werden.',
     'zip_only' => 'Bitte nur ZIP-Dateien hochladen.',
     'no_description' => 'Keine Beschreibung vorhanden.',
-    'drag_or_click_zip' => 'Datei hierher ziehen oder klicken, um .zip hochzuladen',
+    'template_uploaded' => 'Template "%s" wurde installiert.',
     'upload' => 'Hochladen',
     'preview' => 'Vorschau',
     'active' => 'Aktiv',
     'show_details' => 'Details anzeigen',
     'edit' => 'Bearbeiten',
     'delete' => 'Löschen',
-    'confirm_delete_template' => 'Template wirklich löschen?',
+
     'activate_selected' => 'Ausgewähltes Template aktivieren',
-'search_templates' => 'Vorlagen suchen',
-'search_templates_placeholder' => 'Template-Name oder Beschreibung eingeben...',
+
+
 'select_template' => 'Template auswählen',
 
     'zip_target_create_failed' => 'Zielverzeichnis konnte nicht erstellt werden.',
@@ -284,21 +295,31 @@ return [
     'delete' => 'Löschen',
     'select_zip_first' => 'Bitte eine ZIP-Datei auswählen.',
       'select_plugins_to_activate' => 'Plugins auswählen',
-      'search_plugins' => 'Plugins suchen',
-      'search_plugins_placeholder' => 'Name eines Plugins eingeben...',
+
+      
       
  // === Zentrale Delete-Messages mit Platzhalter für dynamische Namen ===
-    'delete_confirm_user' => 'Bist du sicher, dass du den Benutzer "%s" löschen möchtest?',
+    'delete_confirm_user' => 'Benutzer "%s" wirklich löschen?',
     'delete_confirm_template' => 'Template "%s" wirklich löschen?',
     'delete_confirm_plugin' => 'Plugin "%s" wirklich löschen?',
     'delete_confirm_category' => 'Kategorie "%s" wirklich löschen?',
     'delete_confirm_page' => 'Seite "%s" wirklich löschen?',
-    'delete_confirm_file' => 'Datei "%s" wirklich löschen?',
+    'delete_confirm_file' => 'Datei %s wirklich löschen?',
     
     // Update-Check / System
 'update_check_unavailable' => 'Updateprüfung nicht möglich (cURL ist auf diesem Server nicht aktiviert).',
 'update_check_failed' => 'Updateprüfung fehlgeschlagen (GitHub nicht erreichbar).',
 'update_no_version_found' => 'Fehler: Keine Versionsnummer in der cms.json gefunden!',
+
+// search
+'search_files' => 'Dateien suchen',
+'search_files_placeholder' => 'Name einer Datei eingeben...',
+'search_pages' => 'Seiten suchen',
+'search_pages_placeholder' => 'Name einer Seite eingeben...',
+'search_templates' => 'Template suchen',
+'search_templates_placeholder' => 'Template-Name oder Beschreibung eingeben...',
+      'search_plugins' => 'Plugins suchen',
+      'search_plugins_placeholder' => 'Name eines Plugins eingeben...',
 
     
 ];

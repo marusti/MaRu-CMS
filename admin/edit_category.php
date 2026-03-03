@@ -109,7 +109,7 @@ ob_start();
         <button type="submit"><?= __('save_changes') ?></button>
     </form>
 
-    <p><a href="manage_categories.php">⬅ <?= __('back_to_overview') ?></a></p>
+    <p><a href="manage_categories.php"><?= __('back_to_overview') ?></a></p>
 </div>
 
 <?php

@@ -38,15 +38,12 @@ file_put_contents($file, json_encode(array_values($categories), JSON_PRETTY_PRIN
 // Die aktuelle `category_page` ermitteln
 $categoryPage = $_GET['category_page'] ?? 1;
 
-// Alle URL-Parameter beibehalten, aber `id` entfernen
+// Die Weiterleitung zur ursprünglichen Seite mit allen Parametern
 $queryParams = $_GET;
 unset($queryParams['id']); // Entferne `id` aus den Weiterleitungsparametern
-$queryParams['message'] = 'Category deleted successfully'; // Erfolgsnachricht hinzufügen
+$queryParams['deleted'] = 'category'; // Erfolgsnachricht für Löschung hinzufügen
 
-// Die Weiterleitung zur ursprünglichen Seite mit allen Parametern
-// Verwendet $_SERVER['QUERY_STRING'], um die URL-Parameter korrekt zu übernehmen
+// Die Weiterleitung durchführen
 $redirectUrl = 'manage_categories.php?' . http_build_query($queryParams);
-
-// Weiterleiten
 header('Location: ' . $redirectUrl);
 exit;

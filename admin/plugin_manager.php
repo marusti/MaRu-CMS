@@ -313,11 +313,11 @@ ob_start();
                             </label>
 
                             <button type="button"
-        class="maru-delete delete-plugin"
-        data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
-        data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
-        data-message="<?= htmlspecialchars(__('confirm_delete_plugin'), ENT_QUOTES) ?>"
-        title="<?= __('delete') ?>">
+    class="maru-delete delete-plugin"
+    data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
+    data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
+    data-message="<?= htmlspecialchars(sprintf(__('delete_confirm_plugin'), $plugin), ENT_QUOTES) ?>"
+    title="<?= __('delete') ?>">
     <?= getIcon('delete') ?>
 </button>
 
@@ -469,21 +469,27 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('plugin_zip', file);
         formData.append('csrf_token', csrfToken);
 
-        fetch('plugin_upload.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                showStatus(data.error || '<?= addslashes(__('error_occurred')) ?>', 'error');
-            }
-        })
-        .catch(() => {
-            showStatus('<?= addslashes(__('error_occurred')) ?>', 'error');
-        });
+        fetch('plugin_delete.php', {
+    method: 'POST',
+    body: formData
+})
+.then(res => res.text())  // Text statt JSON verwenden, um den Inhalt der Antwort zu sehen
+.then(responseText => {
+    console.log(responseText);  // Anzeigen der Antwort in der Konsole
+    try {
+        const data = JSON.parse(responseText);
+        if (data.success) {
+            location.reload();
+        } else {
+            showStatus(data.error || 'Ein Fehler ist aufgetreten', 'error');
+        }
+    } catch (e) {
+        showStatus('Fehler beim Verarbeiten der Antwort', 'error');
+    }
+})
+.catch(error => {
+    showStatus('Fehler beim Verarbeiten der Anfrage', 'error');
+});
     }
 
     /* ===============================

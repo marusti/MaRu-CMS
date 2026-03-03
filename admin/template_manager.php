@@ -58,7 +58,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = sprintf(__('template_deleted'), $tpl);
         }
     }
+    
+    // Template hochladen
+    elseif (isset($_FILES['template_zip']) && $_FILES['template_zip']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = $templateDir;
+        $zipFile = $_FILES['template_zip']['tmp_name'];
+        $zipName = basename($_FILES['template_zip']['name']);
+
+        // Überprüfen ob die Datei eine ZIP-Datei ist
+        if (pathinfo($zipName, PATHINFO_EXTENSION) !== 'zip') {
+            $message = __('invalid_zip_file');
+            $messageType = 'error';
+        } else {
+            // Entpacken der ZIP-Datei
+            $zip = new ZipArchive();
+            if ($zip->open($zipFile) === true) {
+                $extractPath = $uploadDir . '/' . pathinfo($zipName, PATHINFO_FILENAME);
+                if (!file_exists($extractPath)) {
+                    mkdir($extractPath, 0755, true);
+                }
+                $zip->extractTo($extractPath);
+                $zip->close();
+
+                // Rückmeldung nach erfolgreichem Upload
+                $message = sprintf(__('template_uploaded'), $zipName);
+                $messageType = 'success';
+            } else {
+                $message = __('failed_to_extract_zip');
+                $messageType = 'error';
+            }
+        }
+    } elseif ($_FILES['template_zip']['error'] !== UPLOAD_ERR_OK) {
+        $message = __('upload_error');
+        $messageType = 'error';
+    }
 }
+
 
 /* ===============================
    Templates laden
@@ -115,6 +150,16 @@ ob_start();
 <label for="templateSearch"><?= __('search_templates') ?>:</label>
 <input id="templateSearch" class="admin-search" type="search"
        placeholder="<?= __('search_templates_placeholder') ?>">
+       
+<form class="upload-form" method="post" enctype="multipart/form-data" id="uploadForm">
+<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+
+    <div id="dropZone" class="drop-zone">
+        <p><?= __('upload_instruction') ?></p>
+        <input type="file" name="template_zip" accept=".zip" required hidden>
+    </div>
+    <button type="submit"><?= __('upload') ?></button>
+</form>
 
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
@@ -150,7 +195,7 @@ ob_start();
                 <button type="button"
         class="maru-delete delete-template"
         data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES, 'UTF-8') ?>"
-        data-message="<?= htmlspecialchars(__('confirm_delete_template'), ENT_QUOTES, 'UTF-8') ?>"
+        data-message="<?= htmlspecialchars(__('delete_confirm_template'), ENT_QUOTES, 'UTF-8') ?>"
         data-template="<?= htmlspecialchars($tpl['folder'], ENT_QUOTES, 'UTF-8') ?>"
         title="<?= __('delete') ?>">
     <?= getIcon('delete') ?>

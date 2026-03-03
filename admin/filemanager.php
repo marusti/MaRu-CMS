@@ -17,8 +17,6 @@ $uploadBase = realpath(__DIR__ . '/../uploads');
 $mediaDir   = $uploadBase . '/media';
 $systemDir  = $uploadBase . '/system';
 
-$messages = [];
-
 $jsonPath = realpath(__DIR__ . '/../config/allowed_filetypes.json');
 $allowedTypes = [];
 $allowedExts = [];
@@ -86,28 +84,24 @@ if (!$selectMode && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($_POST['delete_files']) && is_array($_POST['delete_files'])) {
     foreach ($_POST['delete_files'] as $relativePath) {
-        // ".." entfernen
         $relativePath = str_replace(['..', "\0"], '', $relativePath);
-
-        // Korrigierter Pfad
         $filePath = realpath($uploadBase . '/' . $relativePath);
 
         if ($filePath && str_starts_with($filePath, realpath($mediaDir)) && is_file($filePath)) {
             $fileName = basename($filePath);
             if (unlink($filePath)) {
-                $messages[] = sprintf(__('file_deleted'), $fileName);
-            } else {
-                $messages[] = sprintf(__('file_delete_failed'), $fileName);
-            }
+    addMessage($messages, sprintf(__('file_deleted'), $fileName), 'success');
+} else {
+    addMessage($messages, sprintf(__('file_delete_failed'), $fileName), 'error');
+}
 
             if (isset($altTexts[$fileName])) unset($altTexts[$fileName]);
             if (isset($captions[$fileName])) unset($captions[$fileName]);
         } else {
-            $messages[] = sprintf(__('file_delete_failed'), $relativePath);
+            addMessage($messages, sprintf(__('file_delete_failed'), $relativePath), 'error');
         }
     }
 
-    // JSON speichern
     file_put_contents($altTextsPath, json_encode($altTexts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
     file_put_contents($captionsPath, json_encode($captions, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
@@ -115,35 +109,33 @@ if (!$selectMode && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['files'])) {
     foreach ($_FILES['files']['tmp_name'] as $i => $tmp) {
         $name = basename($_FILES['files']['name'][$i]);
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
-        // Sicherheitschecks
-        if (preg_match('/\.(php|exe|sh|bat)$/i', $name) || substr_count($name, '.') > 1) {
-            $messages[] = sprintf(__('invalid_filename'), $name);
+        if (preg_match('/\.(php|exe|sh|bat)$/i', $name)) {
+            addMessage($messages, sprintf(__('invalid_filename'), $name), 'error');
             continue;
         }
 
         if (!in_array($ext, $allowedExts)) {
-            $messages[] = sprintf(__('invalid_filetype'), $name);
+            addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
             continue;
         }
 
         if (empty($tmp) || !is_uploaded_file($tmp)) {
-            $messages[] = sprintf(__('upload_error'), $name);
+            addMessage($messages, sprintf(__('upload_error'), $name), 'error');
             continue;
         }
 
         $type = mime_content_type($tmp);
         if (!in_array($type, $allowedTypes)) {
-            $messages[] = sprintf(__('invalid_filetype'), $name);
+            addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
             continue;
         }
 
-        // **Media Library Zielordner bestimmen**
+        // Zielordner bestimmen
         $imageExts = ['jpg','jpeg','png','webp','gif'];
         $docExts   = ['pdf','docx','txt'];
         $videoExts = ['mp4','webm'];
@@ -161,18 +153,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['files'])) {
             $targetDir = $mediaDir . '/other';
         }
 
+        if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
+
         $target = $targetDir . '/' . $name;
 
-        // Doppel-Upload verhindern
         if (file_exists($target)) {
-            $messages[] = sprintf(__('file_exists'), $name);
+            addMessage($messages, sprintf(__('file_exists'), $name), 'error');
             continue;
         }
 
         if (move_uploaded_file($tmp, $target)) {
-            $messages[] = sprintf(__('file_uploaded'), $name);
+            addMessage($messages, sprintf(__('file_uploaded'), $name), 'success');
         } else {
-            $messages[] = sprintf(__('upload_error'), $name);
+            addMessage($messages, sprintf(__('upload_error'), $name), 'error');
         }
     }
 }
@@ -182,9 +175,12 @@ ob_start();
 ?>
 <h1><?= $selectMode ? 'Bild auswählen' : __('manage_files') ?></h1>
 
-<?php foreach ($messages as $msg): ?>
-    <div class="filemanager message"><?= htmlspecialchars($msg) ?></div>
-<?php endforeach; ?>
+
+
+<!-- Filter für Dateinamen -->
+<label for="file-search"><?= __('search_files') ?>:</label>
+<input type="text" id="file-search" class="admin-search" placeholder="<?= htmlspecialchars(__('search_files_placeholder')) ?>" />
+
 
 <h2><?= __('upload_files') ?></h2>
 
@@ -192,8 +188,8 @@ ob_start();
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
     <div id="dropZone" class="drop-zone" tabindex="0" role="button"
-         aria-label="<?= __('drop_files_here') ?>">
-        <p><?= __('drop_files_here') ?></p>
+         aria-label="<?= __('upload_instruction') ?>">
+        <p><?= __('upload_instruction') ?></p>
         <input
             type="file"
             name="files[]"
@@ -288,13 +284,14 @@ foreach ($files as $filePath):
 
         <div class="filename"><?= htmlspecialchars($fileName) ?></div>
         <?php if (!$selectMode): ?>
-            <button type="button" class="maru-delete"
-                    data-template="<?= htmlspecialchars(str_replace(realpath($uploadBase) . '/', '', $filePath)) ?>"
-                    data-title="<?= __('delete') ?>"
-                    data-message="<?= __('delete_confirm_generic') ?>"
-                    aria-label="<?= __('delete_file') ?> <?= htmlspecialchars($fileName) ?>">
-                <?= getIcon('delete') ?>
-            </button>
+            <button type="button" class="maru-delete delete-files"
+        data-file="<?= htmlspecialchars(basename($filePath)) ?>" 
+        data-url="delete_file.php"
+        data-title="<?= __('delete') ?>"
+        data-message="<?= __('delete_confirm_file') ?>"  
+        aria-label="<?= __('delete_file') ?> <?= htmlspecialchars($fileName) ?>">
+    <?= getIcon('delete') ?>
+</button>
         <?php endif; ?>
     </div>
 
@@ -302,15 +299,11 @@ foreach ($files as $filePath):
 </div>
 
 
-</div>
 
-<?php if (!$selectMode): ?>
-</form>
-<?php endif; ?>
 
-<form id="deleteTemplateForm" method="post" style="display:none;">
+<form id="deleteFileForm" method="post" hidden>
     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-    <input type="hidden" name="delete_files[]" id="deleteTemplateInput">
+    <input type="hidden" name="delete_files[]" id="deleteFileInput">
 </form>
 
 <script>
@@ -374,68 +367,71 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFile = null;
 
     document.querySelectorAll('.file-item .preview-trigger').forEach(trigger => {
-        trigger.addEventListener('click', async (e) => {
-            e.stopPropagation(); // verhindert, dass Checkbox geklickt wird
-            const item = trigger.closest('.file-item');
+    trigger.addEventListener('click', async (e) => {
+        e.stopPropagation(); // verhindert, dass Checkbox geklickt wird
+        const item = trigger.closest('.file-item');
 
-            const file = item.querySelector('.filename').textContent;
-            const type = item.dataset.type;
-            const url  = item.dataset.url;
+        const file = item.querySelector('.filename').textContent;
+        const type = item.dataset.type;
+        const url = item.dataset.url;
 
-            currentFile = file;
-            fileNameEl.textContent = file;
-            fileSizeEl.textContent = '';
-            fileDimensionsEl.textContent = '';
-            metaStatus.textContent = '';
+        currentFile = file;
+        fileNameEl.textContent = file;
+        fileSizeEl.textContent = '';
+        fileDimensionsEl.textContent = ''; // Initialisierung, um Dimensionen zu leeren
+        metaStatus.textContent = '';
 
-            // Vorschau zurücksetzen
-            previewImg.style.display = 'none';
-            previewText.style.display = 'none';
-  //          imageMeta.style.display = 'none';
-            previewImg.src = '';
-            previewImg.alt = '';
+        // Vorschau zurücksetzen
+        previewImg.style.display = 'none';
+        previewText.style.display = 'none';
+        document.getElementById('imageMeta').style.display = 'none'; // Verstecke das Metadatenformular
 
-            if (type === 'image') {
-                previewImg.src = url;
-                previewImg.alt = item.dataset.alt || '';
-                previewImg.style.display = 'block';
+        if (type === 'image') {
+            previewImg.src = url;
+            previewImg.alt = item.dataset.alt || '';
+            previewImg.style.display = 'block';
 
-     //           imageMeta.style.display = 'block';
-                altTextInput.value = item.dataset.alt || '';
-                captionInput.value = item.dataset.caption || '';
-                altTextInput.dataset.filename = file;
-                captionInput.dataset.filename = file;
+            altTextInput.value = item.dataset.alt || '';
+            captionInput.value = item.dataset.caption || '';
+            altTextInput.dataset.filename = file;
+            captionInput.dataset.filename = file;
 
-                // Dateigröße
-                fetch(url, { method: 'HEAD' }).then(res => {
-                    const size = res.headers.get('content-length');
-                    fileSizeEl.textContent = size ? (size / 1024).toFixed(1) + ' KB' : 'n/a';
-                });
+            // Bildgröße und Dimensionen anzeigen
+            document.getElementById('imageMeta').style.display = 'flex'; // Zeige das Metadatenformular
 
-                previewImg.onload = () => {
-                    fileDimensionsEl.textContent = previewImg.naturalWidth + ' x ' + previewImg.naturalHeight;
-                };
-            } else if (type === 'text') {
-                try {
-                    const res = await fetch(url);
-                    const text = await res.text();
-                    previewText.textContent = text;
-                    previewText.style.display = 'block';
-                    fileSizeEl.textContent = text.length + ' Bytes';
-                    fileDimensionsEl.textContent = '–';
-                } catch {
-                    previewText.textContent = 'Fehler beim Laden der Datei';
-                }
-            } else {
-                fileSizeEl.textContent = '–';
-                fileDimensionsEl.textContent = '–';
+            fetch(url, { method: 'HEAD' }).then(res => {
+                const size = res.headers.get('content-length');
+                fileSizeEl.textContent = size ? (size / 1024).toFixed(1) + ' KB' : 'n/a';
+            });
+
+            previewImg.onload = () => {
+                fileDimensionsEl.textContent = previewImg.naturalWidth + ' x ' + previewImg.naturalHeight; // Nur für Bilder
+            };
+        } else if (type === 'text') {
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                previewText.textContent = text;
+                previewText.style.display = 'block';
+previewText.style.whiteSpace = 'normal'; // Standard Textumbruch setzen
+                fileSizeEl.textContent = text.length + ' Bytes';
+                fileDimensionsEl.textContent = '–'; // Für .txt-Dateien keine Dimensionen anzeigen
+            } catch {
+                previewText.textContent = 'Fehler beim Laden der Datei';
             }
 
-            // Dialog öffnen und Fokus setzen für Screenreader
-            dialog.showModal();
-            dialog.focus();
-        });
+            // Keine Metadaten und Dimensionen für Textdateien anzeigen
+            document.getElementById('imageMeta').style.display = 'none';
+        } else {
+            fileSizeEl.textContent = '–';
+            fileDimensionsEl.textContent = '–';
+        }
+
+        // Dialog öffnen und Fokus setzen für Screenreader
+        dialog.showModal();
+        dialog.focus();
     });
+});
 
     // Alt + Caption speichern
     saveMetaBtn.addEventListener('click', async () => {
@@ -514,6 +510,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('file-search');
+    const fileItems = document.querySelectorAll('.file-item');
+
+    searchInput.addEventListener('input', function () {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        fileItems.forEach(function (fileItem) {
+            const fileName = fileItem.querySelector('.filename').textContent.toLowerCase();
+            // Wenn der Dateiname den Suchbegriff enthält, anzeigen, ansonsten ausblenden
+            if (fileName.includes(searchTerm)) {
+                fileItem.style.display = ''; // Zeigt das Element an
+            } else {
+                fileItem.style.display = 'none'; // Versteckt das Element
+            }
+        });
+    });
+});
+</script>
 
 <?php
 $content = ob_get_clean();

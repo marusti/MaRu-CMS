@@ -1,10 +1,10 @@
 <!-- Vorschau-Dialog -->
 <dialog id="imagePreviewDialog"
         class="modal"
-        aria-labelledby="previewModalTitle"
+        aria-labelledby="modalTitle"  <!-- Change to match the id -->
         aria-describedby="previewModalMessage">
 
-    <div id="previewModalTitle"><?= __('preview') ?></div>
+    <div id="modalTitle"><?= __('preview') ?></div>  <!-- Ensure this matches -->
 
     <div class="dialog-content">
         <div class="image-container">
@@ -43,7 +43,7 @@
         aria-labelledby="modalTitle"
         aria-describedby="modalMessage">
 
-    <div id="modalTitle"><?= __('confirm') ?></div>
+    <div id="modalTitle"><?= __('delete') ?></div>
 
     <div class="dialog-content">
         <p id="modalMessage"><?= __('delete_confirm_generic') ?></p>
@@ -58,9 +58,9 @@
 <!-- Generischer Formular-Dialog -->
 <dialog id="formModal"
         class="modal"
-        aria-labelledby="formModalTitle">
+        aria-labelledby="modalTitle">
 
-    <div id="formModalTitle"></div>
+    <div id="modalTitle"><?= __('form_title') ?></div>  <!-- Add meaningful content here -->
 
     <div class="dialog-content" id="formModalContent">
         <!-- Wird dynamisch gefüllt -->
@@ -70,12 +70,17 @@
 </dialog>
 
 <!-- Media-Dialog -->
-<dialog id="mediaModal" class="modal">
-    <div><?= __('select_image') ?></div>
+<dialog id="mediaModal" class="modal" aria-labelledby="modalTitle" aria-describedby="mediaModalMessage">
+    <div id="modalTitle"><?= __('select_image') ?></div>
+
+    <!-- Neue Beschreibung für den Dialog -->
+    <div id="mediaModalMessage" class="sr-only"><?= __('select_image_description') ?></div>
 
     <div class="dialog-content" id="mediaModalContent">
-        <!-- Wird per JS geladen -->
+        <!-- Der Inhalt von uploads_list.php wird hier geladen -->
     </div>
+    
+    <button id="modalCancel" type="button" class="maru-cancel"><?= __('cancel') ?></button>
 
     <button type="button" class="maru-close" aria-label="<?= __('close') ?>">×</button>
 </dialog>
