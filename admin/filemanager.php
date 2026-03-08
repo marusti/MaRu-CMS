@@ -7,6 +7,11 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php'; 
 
+$pageHasDialog = true;
+
+// Signal, dass diese Seite Filter braucht
+$pageHasFilter = true;
+
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
@@ -77,62 +82,133 @@ if (file_exists($captionsPath)) {
 }
 
 
-if (!$selectMode && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	
+
+    // CSRF prüfen
     if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
         die('Ungültiges CSRF-Token');
     }
 
-    if (!empty($_POST['delete_files']) && is_array($_POST['delete_files'])) {
-    foreach ($_POST['delete_files'] as $relativePath) {
-        $relativePath = str_replace(['..', "\0"], '', $relativePath);
-        $filePath = realpath($uploadBase . '/' . $relativePath);
+    /*
+    |---------------------------------------------
+    | Dateien löschen
+    |---------------------------------------------
+    */
+    if (!$selectMode && !empty($_POST['delete_files']) && is_array($_POST['delete_files'])) {
 
-        if ($filePath && str_starts_with($filePath, realpath($mediaDir)) && is_file($filePath)) {
-            $fileName = basename($filePath);
-            if (unlink($filePath)) {
-    addMessage($messages, sprintf(__('file_deleted'), $fileName), 'success');
-} else {
-    addMessage($messages, sprintf(__('file_delete_failed'), $fileName), 'error');
-}
 
-            if (isset($altTexts[$fileName])) unset($altTexts[$fileName]);
-            if (isset($captions[$fileName])) unset($captions[$fileName]);
-        } else {
-            addMessage($messages, sprintf(__('file_delete_failed'), $relativePath), 'error');
+        foreach ($_POST['delete_files'] as $relativePath) {
+
+            $relativePath = str_replace(['..', "\0"], '', $relativePath);
+            $filePath = realpath($uploadBase . $relativePath);
+
+            if ($filePath && str_starts_with($filePath, realpath($mediaDir)) && is_file($filePath)) {
+
+                $fileName = basename($filePath);
+
+                if (unlink($filePath)) {
+                    addMessage($messages, sprintf(__('file_deleted'), $fileName), 'success');
+                } else {
+                    addMessage($messages, sprintf(__('file_delete_failed'), $fileName), 'error');
+                }
+
+                if (isset($altTexts[$fileName])) unset($altTexts[$fileName]);
+                if (isset($captions[$fileName])) unset($captions[$fileName]);
+
+            } else {
+                addMessage($messages, sprintf(__('file_delete_failed'), $relativePath), 'error');
+            }
         }
+
+        file_put_contents(
+            $altTextsPath,
+            json_encode($altTexts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            LOCK_EX
+        );
+
+        file_put_contents(
+            $captionsPath,
+            json_encode($captions, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            LOCK_EX
+        );
     }
 
-    file_put_contents($altTextsPath, json_encode($altTexts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-    file_put_contents($captionsPath, json_encode($captions, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-}
+    /*
+    |---------------------------------------------
+    | Dateien hochladen
+    |---------------------------------------------
+    */
+    if (isset($_FILES['files'])) {
 
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['files'])) {
     foreach ($_FILES['files']['tmp_name'] as $i => $tmp) {
-        $name = basename($_FILES['files']['name'][$i]);
-        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
-        if (preg_match('/\.(php|exe|sh|bat)$/i', $name)) {
+        $name = basename($_FILES['files']['name'][$i]);
+        $ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+        // Gefährliche Extensions direkt blockieren
+        if (preg_match('/\.(php|phtml|exe|sh|bat)$/i', $name)) {
             addMessage($messages, sprintf(__('invalid_filename'), $name), 'error');
             continue;
         }
 
+        // Doppelte gefährliche Extensions prüfen (z.B. test.php.txt)
+        if (preg_match('/\.(php|phtml|exe|sh|bat)\.[a-z0-9]+$/i', $name)) {
+            addMessage($messages, sprintf(__('invalid_filename'), $name), 'error');
+            continue;
+        }
+
+        // Extension erlaubt?
         if (!in_array($ext, $allowedExts)) {
             addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
             continue;
         }
 
+        // Upload gültig?
         if (empty($tmp) || !is_uploaded_file($tmp)) {
             addMessage($messages, sprintf(__('upload_error'), $name), 'error');
             continue;
         }
 
-        $type = mime_content_type($tmp);
-        if (!in_array($type, $allowedTypes)) {
+        // MIME-Type prüfen
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($tmp);
+
+        if (!in_array($mimeType, $allowedTypes)) {
             addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
             continue;
+        }
+
+        // Mime-Type vs Extension Map (zusätzliche Kontrolle)
+        $mimeMap = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'pdf'  => 'application/pdf',
+            'txt'  => 'text/plain',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'mp3'  => 'audio/mpeg',
+            'wav'  => 'audio/wav',
+            'mp4'  => 'video/mp4',
+            'webm' => 'video/webm',
+            'zip'  => 'application/zip',
+            'rar'  => 'application/x-rar-compressed',
+        ];
+
+        if (isset($mimeMap[$ext]) && $mimeMap[$ext] !== $mimeType) {
+            addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
+            continue;
+        }
+        
+// **GIF-Header prüfen**
+        if ($ext === 'gif') {
+            $header = file_get_contents($tmp, false, null, 0, 6);
+            if (!in_array($header, ["GIF87a", "GIF89a"])) {
+                addMessage($messages, sprintf(__('invalid_filetype'), $name), 'error');
+                continue;
+            }
         }
 
         // Zielordner bestimmen
@@ -153,21 +229,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['files'])) {
             $targetDir = $mediaDir . '/other';
         }
 
-        if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
 
         $target = $targetDir . '/' . $name;
 
+        // Datei existiert schon?
         if (file_exists($target)) {
             addMessage($messages, sprintf(__('file_exists'), $name), 'error');
             continue;
         }
 
+        // Datei verschieben
         if (move_uploaded_file($tmp, $target)) {
             addMessage($messages, sprintf(__('file_uploaded'), $name), 'success');
         } else {
             addMessage($messages, sprintf(__('upload_error'), $name), 'error');
         }
     }
+}
 }
 
 
@@ -178,8 +259,8 @@ ob_start();
 
 
 <!-- Filter für Dateinamen -->
-<label for="file-search"><?= __('search_files') ?>:</label>
-<input type="text" id="file-search" class="admin-search" placeholder="<?= htmlspecialchars(__('search_files_placeholder')) ?>" />
+<label for="filter"><?= __('search_files') ?>:</label>
+<input type="text" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_files_placeholder')) ?>" />
 
 
 <h2><?= __('upload_files') ?></h2>
@@ -190,14 +271,7 @@ ob_start();
     <div id="dropZone" class="drop-zone" tabindex="0" role="button"
          aria-label="<?= __('upload_instruction') ?>">
         <p><?= __('upload_instruction') ?></p>
-        <input
-            type="file"
-            name="files[]"
-            multiple
-            accept="<?= htmlspecialchars($acceptedExtAttr) ?>"
-            hidden
-            aria-label="Choose a file"
-        >
+        <input type="file" name="files[]" multiple accept="<?= htmlspecialchars($acceptedExtAttr) ?>" hidden aria-label="Choose a file" required>
     </div>
 
     <button type="submit"><?= __('upload_files') ?></button>
@@ -266,7 +340,7 @@ foreach ($files as $filePath):
     $dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? '') : '';
 
 ?>
-    <div class="file-item"
+    <div class="entry-block file-item"
          data-type="<?= in_array($iconName, ['txt', 'pdf', 'zip']) ? 'text' : $iconName ?>" 
          data-url="<?= htmlspecialchars($fileUrl) ?>"
          data-alt="<?= $dataAlt ?>"
@@ -282,13 +356,15 @@ foreach ($files as $filePath):
             <?= $thumb ?>
         </div>
 
-        <div class="filename"><?= htmlspecialchars($fileName) ?></div>
+        <div class="entry-name filename"><?= htmlspecialchars($fileName) ?></div>
         <?php if (!$selectMode): ?>
-            <button type="button" class="maru-delete delete-files"
-        data-file="<?= htmlspecialchars(basename($filePath)) ?>" 
-        data-url="delete_file.php"
+            <button type="button" class="maru-delete js-delete"
+        data-file="<?= htmlspecialchars($relativePath) ?>"
+data-input="deleteFileInput"
+        data-form="deleteFileForm" 
         data-title="<?= __('delete') ?>"
-        data-message="<?= __('delete_confirm_file') ?>"  
+        data-message="<?= htmlspecialchars(__('delete_confirm_file')) ?>"
+        data-value="<?= htmlspecialchars($relativePath) ?>"
         aria-label="<?= __('delete_file') ?> <?= htmlspecialchars($fileName) ?>">
     <?= getIcon('delete') ?>
 </button>
@@ -508,27 +584,6 @@ previewText.style.whiteSpace = 'normal'; // Standard Textumbruch setzen
     });
 });
 
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('file-search');
-    const fileItems = document.querySelectorAll('.file-item');
-
-    searchInput.addEventListener('input', function () {
-        const searchTerm = searchInput.value.toLowerCase();
-
-        fileItems.forEach(function (fileItem) {
-            const fileName = fileItem.querySelector('.filename').textContent.toLowerCase();
-            // Wenn der Dateiname den Suchbegriff enthält, anzeigen, ansonsten ausblenden
-            if (fileName.includes(searchTerm)) {
-                fileItem.style.display = ''; // Zeigt das Element an
-            } else {
-                fileItem.style.display = 'none'; // Versteckt das Element
-            }
-        });
-    });
-});
 </script>
 
 <?php

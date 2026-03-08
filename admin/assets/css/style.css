@@ -129,9 +129,7 @@ html.dark-mode #dropZone {
 
 /* File Items */
 html.dark-mode .file-item {
-/*  background: #1e1e1e;
-  border: 1px solid #333;
-  color: #ddd;*/
+
 }
 
 html.dark-mode .file-item:hover {
@@ -279,9 +277,6 @@ html.glass-mode .warning {
   backdrop-filter: blur(var(--glass-blur));
   color: var(--glass-text);
 }
-
-
-
 /* Reset & Basics */
 * {
   box-sizing: border-box;
@@ -310,7 +305,6 @@ a:hover {
     cursor: not-allowed;
     pointer-events: none;
 }
-
 
 /* Layout */
 header,
@@ -354,9 +348,6 @@ aside nav a:hover {
 }
 
 .sidebar-header {display: none;}
-
-
-
 
 /* Input States */
 input.invalid, select.invalid {
@@ -436,7 +427,6 @@ input.invalid, select.invalid {
 
 }
 
-
 .file-item {
 display: flex;
 align-items: center;
@@ -454,7 +444,6 @@ border-bottom: none
     border-radius: 8px;
     max-width: 90vw;
     max-height: 90vh;
-
 }
 
 .dialog-content {
@@ -500,21 +489,17 @@ border-bottom: none
     cursor: pointer;
 }
 
-
 /* Template */
 .template-block {
-
 }
 
 .template-details {
-
 }
 
 .template-screenshot {
     height: 200px;
     width: 200px
 }
-
 
 .active-badge {
   background-color: var(--primary-color);
@@ -557,7 +542,6 @@ details {
   margin-top: 0.5em;
 }
 
-
 /* Dark Mode */
 html.dark-mode,
 html.dark-mode body {
@@ -596,7 +580,6 @@ width: 200px;
 margin-bottom: 0
 }
 
-
 /* --- Kartenlayout --- */
 .maru-card {
     border-radius: var(--border-radius);
@@ -605,6 +588,8 @@ margin-bottom: 0
     margin-bottom:  var(--spacing);
 }
 
+.entry-name {font-weight: 500}
+
 .category-header {
     display: flex;
     justify-content: space-between;
@@ -612,7 +597,7 @@ margin-bottom: 0
 }
 
 .cat-name {
-flex: 2
+
 }
 
 /* --- Badges --- */
@@ -624,13 +609,17 @@ flex: 2
 
  /*   color: var(--text-color-dark);*/
 }
-.badge-success { background: var(--success-bg);  color: var(--bg-color-light)}
+.badge-success { 
+background: var(--success-border);  
+color: var(--bg-color-light)
+}
 .badge-warning { background: var(--highlight-border)}
 
 /* --- Page-Liste --- */
 .page-entry {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: .5em 0;
     border-bottom: 1px solid #eee;
 }
@@ -642,28 +631,6 @@ gap: 10px
 }
 .page-actions a.delete { color: #e74c3c; }
 
-/* --- Pagination --- */
-.pagination ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-}
-.pagination li {
-    margin: 0 .25em;
-}
-.pagination a {
-    display: inline-block;
-    padding: .4em .8em;
-    border-radius: 4px;
-    background: #f1f1f1;
-    text-decoration: none;
-    color: #333;
-}
-.pagination a.active {
-    background: #3498db;
-    color: #fff;
-}
-
  #content-manage ul {
         list-style: none;
         padding-left: 0;
@@ -672,7 +639,6 @@ gap: 10px
 
     #content-manage li {
         margin-bottom: 0.8em;
-   /*     background: white;*/
         padding: 0.7em 1em;
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -706,7 +672,6 @@ gap: 10px
         outline: none;
     }
 
-
     #content-manage button:hover {
         background-color: #2980b9;
     }
@@ -720,17 +685,14 @@ gap: 10px
     }
 
     #content-manage .page-entry strong {
-     /*   font-weight: 600;*/
-     /*   color: #2c3e50;*/
     }
 
     #content-manage .page-entry small {
-   /*     color: #7f8c8d;*/
+
         margin-left: 0.4em;
     }
 
     #content-manage a {
-
     }
 
     #content-manage a:hover {
@@ -749,31 +711,6 @@ gap: 10px
         flex-grow: 1;
         min-width: 150px;
         max-width: 400px
-    }
-
-    /* Pagination Styling */
-    nav.pagination ul {
-        display: flex;
-        gap: 0.5em;
-        padding-left: 0;
-        list-style: none;
-    }
-
-    nav.pagination a {
-        display: block;
-        padding: 0.3em 0.6em;
-        border: 1px solid #3498db;
-        border-radius: 4px;
-        text-decoration: none;
-        color: #3498db;
-        font-weight: 600;
-        user-select: none;
-    }
-
-    nav.pagination a.active,
-    nav.pagination a:hover {
-        background-color: #3498db;
-        color: white;
     }
     
 /* Dashboard-Überschrift */
@@ -797,7 +734,6 @@ h1 {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     padding: var(--spacing);
-  /*  margin-bottom: 30px;*/
     display: flex;
     flex-direction: column;
 
@@ -811,9 +747,6 @@ h1 {
 
 /* Header für jede Sektion */
 .dashboard section h2 {
- /*   font-size: 1.5rem;*/
- /*   font-weight: 600;*/
-/*    color: var(--secondary-color);*/
     margin-bottom: 1em;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -873,7 +806,6 @@ height: 300px;
         border: 1px solid #ccc;
         border-radius: var(--border-radius);
         margin-bottom: var(--spacing-s)
-
 }
 
     .button-row {
@@ -899,13 +831,7 @@ height: 300px;
     }    
     
 .filemanager.message {
-/*	display: block;
-    background: #e6ffed;
-    border: 1px solid #8dd48d;
-    padding: 0.7rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgb(100 150 100 / 0.3);*/
+
 }
 
 .upload-form {
@@ -918,14 +844,7 @@ height: 300px;
 }
 
 .upload-form button {
- /*   background-color: #4CAF50;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    color: white;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;*/
+
 }
 
 .upload-form button:hover {
@@ -955,9 +874,7 @@ margin-left: auto;
 }
 
 .file-icon {
-
     display: flex;
-
 }
 
 .filename {
@@ -978,9 +895,7 @@ button[disabled] {
 summary {
   display: flex;
   align-items: center;
- /* justify-content: space-between;*/
   cursor: pointer;
-/*  font-weight: 700;*/
 gap: 0.5em;
   list-style: none;
   position: relative;
@@ -1041,8 +956,6 @@ button.maru-delete:hover {
   color: #d9363e;
 }
 
-
-
 /* Drag & Drop */
 #dropZone {
   border: 2px dashed #ccc;
@@ -1075,7 +988,6 @@ button.maru-delete:hover {
   box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
 }
 
-
   .image-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill,minmax(120px,1fr));
@@ -1092,9 +1004,8 @@ button.maru-delete:hover {
   .image-grid img:hover {
     border-color: #0066cc;
   }
-
     
-    form.create-card {
+    .create-card {
     display: grid;
     gap: 10px;    
     }
@@ -1117,8 +1028,7 @@ button.maru-delete:hover {
         border-radius: 4px;
     }   
 
-    .users-list {
- 
+    .users-list { 
     }
 
     .user-card {
@@ -1210,26 +1120,11 @@ width:auto
   gap: 1rem;
   margin-top: 10px
   }
-  #editor {
-    border: 1px solid #ccc;
-    min-height: 300px;
-    padding: 10px;
- 
-  }
-  #htmlEditor {
-    display: none;
-    width: 100%;
-    min-height: 300px;
-    padding: 10px;
-    font-family: monospace;
-    font-size: 1rem;
-    box-sizing: border-box;
-  }
   
   #live-preview-panel{
   	border: 1px solid #ccc;
-min-height: 300px;
-    padding: 10px;
+height: 300px;
+border-radius: var(--border-radius);
 }
 
 #livePreviewFrame{
@@ -1265,7 +1160,6 @@ min-height: 300px;
 }
 
     form label {
-    /*    display: block;*/
 
     }
     input[type="text"], input[type="password"],select {
@@ -1457,7 +1351,6 @@ opacity: .5
 }
 .tabs button.active {
     opacity: 1;
-/*    border-bottom: 1px solid white;*/
 }
 .tab-content {
     display: none;
@@ -1518,8 +1411,6 @@ flex: 1
 }
 
 /*Allgemein*/
-
-
 
 /* Responsive Layout */
 @media (min-width: 768px) {
@@ -1663,11 +1554,9 @@ body.sidebar-collapsed .sidebar-toggle .icon-expand {
   display: inline;
 }
 
-    form.create-card {
-
+    .create-card {
     grid-template-columns: 1fr 1fr;
         gap: var(--spacing-l);
-
     }
     
     .maru-settings {flex-direction: row}

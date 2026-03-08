@@ -2,5 +2,9 @@
     "admin": {
         "password": "$2y$12$knDy7ZCTLmG6fnZToq3xT.qZ3XahIUpZa6s36smPBS.jiNVSv2C6K",
         "role": "admin"
+    },
+    "zgouz7go7g": {
+        "password": "$2y$12$IAJ6ndnUMmw8J\/xh5XFO8ud40vKGYhZ.aOImsOVi14kyMpuNJHLkW",
+        "role": "editor"
     }
 }

@@ -1,5 +1,7 @@
 <?php
 session_start();
+
+
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
@@ -8,6 +10,8 @@ if (!isset($_SESSION['admin'])) {
 $id = $_GET['id'] ?? '';
 $category = $_GET['category'] ?? '';
 $pagesDir = __DIR__ . '/../content/pages';
+
+$message = ''; // Default message variable
 
 if ($id) {
     $safeId = basename($id);
@@ -36,14 +40,20 @@ if ($id) {
         $deleted = true;
     }
 
+    // Success or failure message
     if ($deleted) {
-        $message = "Seite '$safeId' wurde erfolgreich gelöscht.";
+        $message = __('page_deleted_successfully') . ' ' . htmlspecialchars($safeId);
+        addMessage($_SESSION['messages'], $message, 'success');
     } else {
-        $message = "Fehler: Seite '$safeId' konnte nicht gefunden werden.";
+        $message = __('page_not_found');
+        addMessage($_SESSION['messages'], $message, 'error');
     }
 } else {
-    $message = "Fehler: Ungültige Anfrage.";
+    $message = __('invalid_request');
+    addMessage($_SESSION['messages'], $message, 'error');
 }
 
-header("Location: content_manager.php?message=" . urlencode($message));
+// Redirect back to content manager
+header('Location: content_manager.php');
 exit;
+?>

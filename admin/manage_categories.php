@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/init.php';
-require_once __DIR__ . '/assets/icons/icons.php'; 
+require_once __DIR__ . '/assets/icons/icons.php';
+
+$pageHasFilter = true;
+$pageHasDialog = true;
 
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
@@ -11,80 +14,101 @@ $pageTitle = __('manage_categories');
 $categoriesFile = __DIR__ . '/../content/categories.json';
 $categories = file_exists($categoriesFile) ? json_decode(file_get_contents($categoriesFile), true) : [];
 
-$message = '';
-$messageType = '';
+$messages = [];
 
-// Kategorie löschen, wenn ID gesetzt ist
-if (isset($_GET['id'])) {
-    // ID aus der URL holen
-    $id = $_GET['id'] ?? '';
-
-    if (!empty($id)) {
-        $categoryName = ''; // Standardwert für den Namen
-
-        // Kategorie aus dem Array finden und entfernen
-        foreach ($categories as $index => $category) {
-            if ($category['id'] === $id) {
-                $categoryName = $category['name'];
-
-                // Entferne die Kategorie aus dem Array
-                unset($categories[$index]);
-
-                // Die Änderungen in der JSON-Datei speichern
-                file_put_contents($categoriesFile, json_encode(array_values($categories), JSON_PRETTY_PRINT));
-
-                break;
-            }
+// Rekursive Funktion zum Löschen einer Kategorie
+function deleteCategoryById(&$categories, $id) {
+    foreach ($categories as $index => &$cat) {
+        if ($cat['id'] === $id) {
+            unset($categories[$index]);
+            return true;
         }
-
-        // Erfolgs- oder Fehlermeldung formatieren
-        if ($categoryName) {
-            $message = sprintf(__('category_deleted_successfully'), $categoryName);
-        } else {
-            $message = __('category_not_found');
+        if (!empty($cat['children']) && deleteCategoryById($cat['children'], $id)) {
+            return true;
         }
-    } else {
-        $message = __('category_id_missing');
     }
-
-    $messageType = 'success'; // Standardmäßig auf 'success' setzen
+    return false;
 }
 
-$categoryName = isset($_GET['category_name']) ? $_GET['category_name'] : null;
+// Kategorie löschen
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
+    $id = $_POST['delete_category'];
+
+if (deleteCategoryById($categories, $id)) {
+    file_put_contents($categoriesFile, json_encode(array_values($categories), JSON_PRETTY_PRINT), LOCK_EX);
+    addMessage(
+$messages,
+sprintf(
+ __('category_deleted_successfully'),
+$id ?? '' 
+ ),
+        'success'
+    );
+}
+
+// Erfolg / Fehler über GET-Parameter
+$categoryName = $_GET['category_name'] ?? null;
 
 if (isset($_GET['success']) && $_GET['success'] === 'category') {
-    if ($categoryName) {
-        $message = sprintf(__('category_created_successfully'), $categoryName);  
-    } else {
-        $message = __('category_created_successfully');
+    addMessage(
+        $messages,
+        sprintf(
+            __('category_created_successfully'), 
+            $categoryName ?? ''  
+        ),
+        'success'
+    );
+} elseif (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'category':
+            addMessage($messages, __('category_creation_failed'), 'error');
+            break;
+        case 'category_exists':
+            addMessage(
+                $messages,
+                sprintf(
+                    $categoryName ? __('category_name_exists') : __('category_name_exists_generic'),
+                    $categoryName ?? ''
+                ),
+                'error'
+            );
+            break;
     }
-    $messageType = 'success';
-} elseif (isset($_GET['error']) && $_GET['error'] === 'category') {
-    if ($categoryName) {
-        $message = sprintf(__('category_creation_failed'), $categoryName);
-    } else {
-        $message = __('category_creation_failed');
-    }
-    $messageType = 'error';
+}
 }
 
 ob_start();
 ?>
 
 <div id="content-manage">
-    <!-- Nachricht anzeigen, falls vorhanden -->
-    <?php if ($message): ?>
-        <div class="message <?= htmlspecialchars($messageType) ?>">
-            <?= nl2br(htmlspecialchars($message)) ?>
-        </div>
-    <?php endif; ?>
 
     <h1><?= __('manage_categories') ?></h1>
+    
+    <label for="filter"><?= __('search_cat') ?>:</label>
+    <input id="filter" class="admin-search" type="search"
+           placeholder="<?= __('search_cat_placeholder') ?>">
 
-    <!-- Das Formular für das Hinzufügen einer Kategorie bleibt unverändert -->
     <form method="post" action="save_category.php" id="category-form" class="category-form">
         <label for="name"><?= __('name') ?></label>
         <input type="text" id="name" name="name" required oninput="generateId()">
+
+        <label for="parent_id"><?= __('parent_category') ?></label>
+        <select id="parent_id" name="parent_id">
+            <option value=""><?= __('none') ?></option>
+            <?php
+            function renderParentOptions($categories, $prefix = '') {
+                foreach ($categories as $cat):
+            ?>
+                <option value="<?= htmlspecialchars($cat['id']) ?>"><?= $prefix . htmlspecialchars($cat['name']) ?></option>
+                <?php if (!empty($cat['children'])): ?>
+                    <?php renderParentOptions($cat['children'], $prefix . '--'); ?>
+                <?php endif; ?>
+            <?php
+                endforeach;
+            }
+            renderParentOptions($categories);
+            ?>
+        </select>
 
         <input type="hidden" id="id" name="id" readonly required>
 
@@ -92,80 +116,64 @@ ob_start();
     </form>
 
     <h2><?= __('existing_categories') ?></h2>
-    <?php foreach ($categories as $index => $cat): ?>
-    <div class="maru-card category-card">
-        <div class="category-header">
-            <span id="cat-<?= $cat['id'] ?>" class="cat-name"><?= htmlspecialchars($cat['name']) ?></span>
-            <div class="page-actions">
-                <a href="edit_category.php?id=<?= urlencode($cat['id']) ?>"
-                   aria-label="<?= __('edit_category') ?>"
-                   title="<?= __('edit_category') ?>">
-                    <?= getIcon('edit') ?>
-                </a>
 
-                <button
-                   class="maru-delete delete-cat"
-                   data-title="<?= htmlspecialchars(__('delete_category')) ?>"
-                   data-message="<?= htmlspecialchars(__('delete_confirm_category')) ?>"
-                   data-url="manage_categories.php?id=<?= urlencode($cat['id']) ?>"
-                   aria-label="<?= __('delete_category') ?>"
-                   title="<?= __('delete_category') ?>">
-                    <?= getIcon('delete') ?>
-                </button>
-
-                <!-- Smart Move-Buttons -->
-                <?php if ($index > 0): ?>
-                    <a href="move_category.php?id=<?= urlencode($cat['id']) ?>&dir=up"
-                       aria-label="<?= __('move_up') ?>"
-                       title="<?= __('move_up') ?>">
-                        <?= getIcon('arrow-up') ?>
+    <?php
+    function renderCategories($categories) {
+        foreach ($categories as $cat):
+    ?>
+        <div class="maru-card category-card entry-block">
+            <div class="category-header">
+                <span id="cat-<?= htmlspecialchars($cat['id']) ?>" class="entry-name cat-name">
+                    <?= htmlspecialchars($cat['name']) ?>
+                </span>
+                <div class="page-actions">
+                    <a href="edit_category.php?id=<?= urlencode($cat['id']) ?>"
+                       aria-label="<?= __('edit_category') ?>" title="<?= __('edit_category') ?>">
+                        <?= getIcon('edit') ?>
                     </a>
-                <?php else: ?>
-                    <span class="disabled" aria-hidden="true">
-                        <?= getIcon('arrow-up') ?>
-                    </span>
-                <?php endif; ?>
-
-
-                <?php if ($index < count($categories) - 1): ?>
-                    <a href="move_category.php?id=<?= urlencode($cat['id']) ?>&dir=down"
-                       aria-label="<?= __('move_down') ?>"
-                       title="<?= __('move_down') ?>">
-                        <?= getIcon('arrow-down') ?>
-                    </a>
-                <?php else: ?>
-                    <span class="disabled" aria-hidden="true">
-                        <?= getIcon('arrow-down') ?>
-                    </span>
-                <?php endif; ?>
-
+                    <button class="maru-delete js-delete" aria-label="<?= __('delete_category') ?>"
+                            data-form="deleteCategoryForm" data-input="deleteCategoryInput"
+                            data-value="<?= htmlspecialchars($cat['id']) ?>"
+                            data-message="<?= htmlspecialchars(__('delete_confirm_category')) ?>">
+                        <?= getIcon('delete') ?>
+                    </button>
+                </div>
             </div>
-        </div>
-    </div>
-    <?php endforeach; ?>
 
+            <?php if (!empty($cat['children'])): ?>
+                <div class="sub-categories" style="margin-left:20px;">
+                    <?php renderCategories($cat['children']); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php
+        endforeach;
+    }
+
+    renderCategories($categories);
+    ?>
+
+    <form method="post" id="deleteCategoryForm" hidden>
+        <input type="hidden" name="delete_category" id="deleteCategoryInput">
+    </form>
 </div>
 
 <script>
-    // ID-Generierung für neue Kategorie
-    function generateId() {
-        const nameInput = document.getElementById('name');
-        const idInput = document.getElementById('id');
-        const name = nameInput.value.toLowerCase()
-            .replace(/ä/g, 'ae')
-            .replace(/ö/g, 'oe')
-            .replace(/ü/g, 'ue')
-            .replace(/ß/g, 'ss')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-        idInput.value = name;
-    }
-
+function generateId() {
     const nameInput = document.getElementById('name');
-    nameInput.addEventListener('input', generateId);
+    const idInput = document.getElementById('id');
+    const name = nameInput.value.toLowerCase()
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    idInput.value = name;
+}
+document.getElementById('name').addEventListener('input', generateId);
 </script>
 
 <?php
 $content = ob_get_clean();
 include '_layout.php';
-?>

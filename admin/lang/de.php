@@ -104,6 +104,7 @@ return [
 'category_renamed_successfully' => 'Kategorie erfolgreich umbenannt.',
 
     'category_created_successfully' => 'Kategorie "%s" wurde erfolgreich erstellt oder bearbeitet.',
+'category_name_exists'         => 'Die Kategorie "%s" existiert bereits.',
     'category_creation_failed' => 'Fehler beim Erstellen oder Bearbeiten der Kategorie "%s". Bitte versuchen Sie es erneut.',
     'category_deleted_successfully' => 'Kategorie "%s" wurde erfolgreich gelöscht.',
     'category_deletion_failed' => 'Fehler beim Löschen der Kategorie "%s". Bitte versuchen Sie es erneut.',
@@ -161,9 +162,9 @@ return [
     'file_deleted' => 'Datei „%s“ gelöscht.',
     'invalid_filename' => 'Ungültiger Dateiname: %s (Doppelendung oder gefährlich)',
     'invalid_filetype' => 'Ungültiger Dateityp: %s',
-    'file_exists' => 'Datei existiert bereits: %s',
-    'file_uploaded' => 'Datei hochgeladen: %s',
-    'upload_error' => 'Fehler beim Hochladen: %s',
+    'file_exists' => 'Datei "%s" existiert bereits.',
+    'file_uploaded' => 'Datei "%s" wurde hochgeladen.',
+    'upload_error' => 'Fehler beim Hochladen von Datei "%s"',
     'file_info' => 'Dateiinfo',
     'size' => 'Größe',
     'dimensions' => 'Dimensionen',
@@ -189,8 +190,8 @@ return [
     'delete' => 'Löschen',
     'change_password' => 'Passwort ändern',
     'change_role' => 'Rolle ändern',
-    'user_created' => 'Benutzer erstellt.',
-    'user_deleted' => 'Benutzer gelöscht.',
+    'user_created' => 'Benutzer "%s" wurde erstellt.',
+    'user_deleted' => 'Benutzer "%s" wurde gelöscht.',
     'password_changed' => 'Passwort geändert.',
     'role_updated' => 'Rolle aktualisiert.',
     'user_save_error' => 'Fehler beim Speichern der Datei.',
@@ -253,6 +254,8 @@ return [
     'delete' => 'Löschen',
 
     'activate_selected' => 'Ausgewähltes Template aktivieren',
+    'template_already_exists_versions' => 'Template "%s" existiert bereits (installierte Version: %s, hochgeladene Version: %s)',
+'no_version_info' => 'keine Versionsangabe',
 
 
 'select_template' => 'Template auswählen',
@@ -304,7 +307,7 @@ return [
     'delete_confirm_plugin' => 'Plugin "%s" wirklich löschen?',
     'delete_confirm_category' => 'Kategorie "%s" wirklich löschen?',
     'delete_confirm_page' => 'Seite "%s" wirklich löschen?',
-    'delete_confirm_file' => 'Datei %s wirklich löschen?',
+    'delete_confirm_file' => 'Datei "%s" wirklich löschen?',
     
     // Update-Check / System
 'update_check_unavailable' => 'Updateprüfung nicht möglich (cURL ist auf diesem Server nicht aktiviert).',

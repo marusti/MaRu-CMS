@@ -100,7 +100,7 @@ function openMediaModal(url, onSelect) {
         });
 }
 
-
+/*Schließen*/
 document.addEventListener('DOMContentLoaded', () => {
 
     // Alle Close-Buttons für beliebige Dialoge
@@ -155,135 +155,50 @@ document.addEventListener('DOMContentLoaded', () => {
         closeDeleteModal();
     });
 
-    // Kategorie löschen
-    document.querySelectorAll('.delete-cat').forEach(btn => {
-        btn.addEventListener('click', () => {
+    //  löschen
+    document.querySelectorAll('.js-delete').forEach(btn => {
 
-            const title = btn.dataset.title;
-            let message = btn.dataset.message;
-            const url = btn.dataset.url;
+    btn.addEventListener('click', e => {
 
-            const queryString = url.includes('?') ? url.split('?')[1] : '';
-            const urlParams = new URLSearchParams(queryString);
-            const catId = urlParams.get('id');
+        e.preventDefault();
 
-            message = message.replace('%s', catId);
+        const title = btn.dataset.title || '';
+        let message = btn.dataset.message || '';
 
-            confirmModal(title, message, url, () => {
+        const value = btn.dataset.value || '';
+        const url = btn.dataset.url || null;
+        const formId = btn.dataset.form || null;
+        const inputId = btn.dataset.input || null;
+
+        if (value) {
+            message = message.replace('%s', value);
+        }
+
+        confirmModal(title, message, url, () => {
+
+            // Redirect Delete
+            if (url) {
                 window.location.href = url;
-            });
-        });
-    });
+                return;
+            }
 
-    // Seite löschen
-    document.querySelectorAll('.delete-page').forEach(btn => {
-        btn.addEventListener('click', () => {
+            // Form Delete
+            if (formId && inputId) {
 
-            const title = btn.dataset.title;
-            let message = btn.dataset.message;
-            const url = btn.dataset.url;
-
-            const queryString = url.includes('?') ? url.split('?')[1] : '';
-            const urlParams = new URLSearchParams(queryString);
-            const pageId = urlParams.get('id');
-
-            message = message.replace('%s', pageId);
-
-            confirmModal(title, message, url, () => {
-                window.location.href = url;
-            });
-        });
-    });
-
-    // Template löschen
-    document.querySelectorAll('.delete-template').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            const templateName = btn.dataset.template;
-            const title = btn.dataset.title;
-            let message = btn.dataset.message.replace('%s', templateName);
-
-            confirmModal(title, message, null, () => {
-                const form = document.getElementById('deleteTemplateForm');
-                const input = document.getElementById('deleteTemplateInput');
+                const form = document.getElementById(formId);
+                const input = document.getElementById(inputId);
 
                 if (form && input) {
-                    input.value = templateName;
+                    input.value = value;
                     form.submit();
                 }
-            });
+
+            }
+
         });
+
     });
 
-    // Benutzer löschen
-    document.querySelectorAll('.delete-user').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.preventDefault();
-            const username = btn.dataset.name;
-
-            confirmModal(
-                btn.dataset.title,
-                btn.dataset.message.replace('%s', username),
-                null,
-                () => {
-                    const form = document.getElementById('deleteUserForm');
-                    const input = document.getElementById('deleteUserInput');
-                    if (form && input) {
-                        input.value = username;
-                        form.submit();
-                    }
-                }
-            );
-        });
-    });
-
-    // Dateien löschen
-    document.querySelectorAll('.delete-files').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            const filePath = btn.dataset.file;
-            const fileName = filePath.split('/').pop();
-            let message = btn.dataset.message.replace('%s', fileName);
-
-            confirmModal(
-                btn.dataset.title,
-                message,
-                null,
-                () => {
-                    const form = document.getElementById('deleteFileForm');
-                    const input = document.getElementById('deleteFileInput');
-
-                    if (form && input) {
-                        input.value = filePath;
-                        form.submit();
-                    }
-                }
-            );
-        });
-    });
-
-    // Plugin löschen
-    document.querySelectorAll('.delete-plugin').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.preventDefault();
-            const pluginName = btn.dataset.plugin;
-
-            confirmModal(
-                btn.dataset.title,
-                btn.dataset.message.replace('%s', pluginName),
-                null,
-                () => {
-                    const form = document.getElementById('deletePluginForm');
-                    const input = document.getElementById('deletePluginInput');
-                    if (form && input) {
-                        input.value = pluginName;
-                        form.submit();
-                    }
-                }
-            );
-        });
-    });
+});
 
 });

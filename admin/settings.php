@@ -301,6 +301,15 @@ ob_start();
     </div>
 </fieldset>
 
+<fieldset>
+    <legend>Sonderseiten</legend>
+    <div class="maru-settings">
+        <a href="edit_page.php?id=404" class="button">
+            404-Seite bearbeiten
+        </a>
+    </div>
+</fieldset>
+
 
     <button type="submit"><?= __('save') ?></button>
 </form>

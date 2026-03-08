@@ -255,19 +255,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
             <?php endif; ?>
         </form>
     <?php endif; ?>
+    
 
-<?= $content ?>
+        <?= $content ?>  
+
 </main>
 
 <!-- Dialoge -->
+<?php if (!empty($pageHasDialog)): ?>
 <?php include 'includes/dialog.php'; ?>
+<?php endif; ?>
 
 <footer role="contentinfo" aria-label="Footer">
   <small>
     © <?= date('Y') ?> | 
-    <a href="https://github.com/marusti/MaRu-CMS"
-       target="_blank"
-       rel="noopener noreferrer">
+    <a href="https://github.com/marusti/MaRu-CMS"  target="_blank" rel="noopener noreferrer">
       <?= htmlspecialchars($cms['name']) ?>
     </a>
     <?= htmlspecialchars($cms['version']) ?>
@@ -275,9 +277,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_base_url'], $_PO
   </small>
 </footer>
 
+<?php if (!empty($pageHasEditor)): ?>
 <script src="assets/js/editor.js"></script>
+<?php endif; ?>
 <script src="assets/js/core.js"></script>
+<?php if (!empty($pageHasDialog)): ?>
 <script src="assets/js/dialog.js" defer></script>
-
+<?php endif; ?>
+<?php if (!empty($pageHasFilter)): ?>
+<script src="assets/js/filter.js"></script>
+<?php endif; ?>
 </body>
 </html>

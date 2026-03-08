@@ -3,6 +3,10 @@ require_once __DIR__ . '/../lib/helpers.php';
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php';
 
+// Signal, dass diese Seite Filter braucht
+$pageHasFilter = true;
+$pageHasDialog = true;
+
 session_start();
 
 ini_set('display_errors', '1');
@@ -61,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT)) === false) {
                 addMessage($messages, __('user_save_error'), 'error');
             } else {
-                addMessage($messages, __('user_created'), 'success');
+                addMessage($messages, sprintf(__('user_created'), $username), 'success');
             }
         }
 
@@ -73,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT)) === false) {
                 addMessage($messages, __('user_save_error'), 'error');
             } else {
-                addMessage($messages, __('user_deleted'), 'success');
-            }
+                addMessage($messages, sprintf(__('user_deleted'), $username), 'success'); // <-- hier Username einfügen
+        }
         }
 
     // === Passwort ändern ===
@@ -122,23 +126,12 @@ ob_start();
 
 <h1><?= __('manage_users') ?></h1>
 
-<?php if (!empty($messages)): ?>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const successBox = document.querySelector('.message.success');
-            if (successBox) {
-                setTimeout(() => {
-                    successBox.style.transition = 'opacity 1s ease-out';
-                    successBox.style.opacity = 0;
-                    setTimeout(() => successBox.remove(), 1000);
-                }, 4000);
-            }
-        });
-    </script>
-<?php endif; ?>
+<!-- Search filter -->
+<label for="filter"><?= __('search_user') ?>:</label>
+<input  type="text" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_user_placeholder')) ?>">
 
 <?php if ($users[$currentUser]['role'] !== 'editor'): ?>
+
 <h2><?= __('create_user') ?></h2>
 <form method="post" name="create_user_form" class="maru-card create-card" novalidate aria-label="Create new user">
     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
@@ -170,31 +163,27 @@ ob_start();
 <h2><?= __('existing_users') ?></h2>
 <div class="maru-list users-list">
 <?php foreach ($users as $username => $info): ?>
-    <div class="user-card" aria-label="User <?= htmlspecialchars($username) ?> with role <?= htmlspecialchars($info['role']) ?>">
+    <div class="entry-block user-card" aria-label="User <?= htmlspecialchars($username) ?> with role <?= htmlspecialchars($info['role']) ?>">
         <div class="user-info">
-            <strong><?= htmlspecialchars($username) ?></strong>
+            <span class="entry-name"><?= htmlspecialchars($username) ?></span>
             <span class="role"><?= htmlspecialchars($info['role']) ?></span>
         </div>
         <div class="actions">
 
         <?php if ($users[$currentUser]['role'] === 'admin' || $username === $currentUser): ?>
-            <button
-                type="button"
-                class="icon-btn edit-user"
-                data-username="<?= htmlspecialchars($username) ?>"
-                aria-label="<?= __('edit_user') ?>">
+            <button type="button" class="icon-btn edit-user" data-username="<?= htmlspecialchars($username) ?>" aria-label="<?= __('edit_user') ?>">
                 <?= getIcon('edit') ?>
             </button>
         <?php endif; ?>
 
         <?php if ($username !== $currentUser && $users[$currentUser]['role'] === 'admin'): ?>
-            <button class="maru-delete delete-user" 
-                data-type="user" 
-                data-message="<?= htmlspecialchars(__('delete_confirm_user'), ENT_QUOTES) ?>"
-                data-name="<?= htmlspecialchars($username) ?>" 
-                data-title="<?= __('delete') ?>">
-                <?= getIcon('delete') ?>
-            </button>
+            <button class="maru-delete js-delete" aria-label="<?= __('delete') ?>" data-title="<?= __('delete') ?>" data-message="<?= htmlspecialchars(__('delete_confirm_user'), ENT_QUOTES) ?>"
+        data-form="deleteUserForm"
+        data-input="deleteUserInput"
+        data-value="<?= htmlspecialchars($username, ENT_QUOTES) ?>"
+        data-type="user">
+    <?= getIcon('delete') ?>
+</button>
         <?php endif; ?>
 
         </div>
@@ -217,30 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     }
 
-    const errorModal = document.getElementById('errorModal');
-    const errorText = document.getElementById('errorText');
-    const closeErrorBtn = document.getElementById('closeErrorModal');
-
-    function showErrorModal(message) {
-        errorText.textContent = message;
-        errorModal.classList.add('active');
-        errorModal.style.display = 'flex';
-        closeErrorBtn.focus();
-    }
-
-    closeErrorBtn.addEventListener('click', () => {
-        errorModal.classList.remove('active');
-        setTimeout(() => { errorModal.style.display = 'none'; }, 300);
-    });
-
-    errorModal.addEventListener('click', function(e) {
-        if (e.target === errorModal) {
-            errorModal.classList.remove('active');
-            setTimeout(() => { errorModal.style.display = 'none'; }, 300);
-        }
-    });
-
-    document.querySelectorAll('.change-password-form').forEach(form => {
+ /*   document.querySelectorAll('.change-password-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             const newPwd = form.querySelector('input[name="new_password"]').value;
             const confirmPwd = form.querySelector('input[name="confirm_new_password"]').value;
@@ -256,18 +222,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 showErrorModal('Passwort muss mindestens 8 Zeichen lang sein, einen Großbuchstaben und eine Zahl enthalten und darf keine Sonderzeichen enthalten.');
             }
         });
-    });
+    });*/
 });
 </script>
-
-<div id="errorModal" class="modal-overlay" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="errorText" tabindex="-1">
-    <div class="modal">
-        <p id="errorText"></p>
-        <div class="modal-buttons" style="justify-content:center;">
-            <button id="closeErrorModal" type="button">OK</button>
-        </div>
-    </div>
-</div>
 
 <?php
 $content = ob_get_clean();

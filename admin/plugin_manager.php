@@ -3,6 +3,9 @@
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php'; 
 
+// Signal, dass diese Seite Filter braucht
+$pageHasFilter = true;
+$pageHasDialog = true;
 // CSRF Token Funktionen
 function csrf_token() {
     if (empty($_SESSION['csrf_token'])) {
@@ -44,46 +47,35 @@ function load_plugin_settings($plugin) {
 }
 
 function save_plugin_settings($pluginName, $settings): bool {
-    $file = __DIR__ . "/../plugins/$pluginName/settings.json"; // Korrekt: $pluginName
+    $file = __DIR__ . "/../plugins/$pluginName/settings.json";
     $json = json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-    // Prüfe JSON-Encoding
     if ($json === false) {
         error_log("JSON encode error for plugin '$pluginName': " . json_last_error_msg());
         return false;
     }
-
-    // Schreibe in Datei
-    $result = file_put_contents($file, $json);
-    if ($result === false) {
-        error_log("Failed to write plugin settings to $file");
-        return false;
-    }
-
-    return true;
+    return file_put_contents($file, $json) !== false;
 }
 
 function load_plugin_info($plugin) {
     return load_json_file(__DIR__ . "/../plugins/$plugin/plugin.json");
 }
 
-// Alle Plugins laden
+// Zentrale Messages
+$messages = [];
+
 $allPlugins = array_map('basename', glob(__DIR__ . '/../plugins/*', GLOB_ONLYDIR));
 sort($allPlugins, SORT_NATURAL | SORT_FLAG_CASE);
 
-// Aktuelle Einstellungen laden
 $currentSettings = load_settings();
 $activePlugins = $currentSettings['plugins'] ?? [];
 
-$message = '';
-$messageType = 'success'; // 'success' oder 'error'
+$csrfToken = csrf_token();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!csrf_check($_POST['csrf_token'] ?? '')) {
         http_response_code(403);
-        $message = __('invalid_csrf_token');
-        $messageType = 'error';
+        addMessage($messages, __('invalid_csrf_token'), 'error');
     } else {
         $errors = [];
 
@@ -102,8 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 foreach ($submittedSettings as $key => $value) {
                     $field = null;
-
-                    // Feld im Schema suchen
                     if (isset($pluginSchema['fields'])) {
                         foreach ($pluginSchema['fields'] as $f) {
                             if ($f['key'] === $key) {
@@ -113,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
 
-                    // Passwortfelder speziell behandeln
                     if ($field && $field['type'] === 'password') {
                         $existingHash = $existingSettings[$key] ?? '';
                         if ($value !== '') {
@@ -135,23 +124,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($errors)) {
-            $message = implode("\n", $errors);
-            $messageType = 'error';
+            foreach ($errors as $err) {
+                addMessage($messages, $err, 'error');
+            }
         } else {
-            $message = __('save_success');
-            $messageType = 'success';
+            addMessage($messages, __('save_success'), 'success');
         }
     }
 }
 
 $pageTitle = __('plugin_manager');
-$csrfToken = csrf_token();
 
 function render_plugin_settings_form(string $plugin, array $settings): string {
     $schemaFile = __DIR__ . "/../plugins/$plugin/settings-schema.json";
     $schema = load_json_file($schemaFile);
     if (!$schema || empty($schema['fields'])) {
-        // Fallback: Einfach Key-Value Textfelder rendern
         $html = '';
         foreach ($settings as $key => $value) {
             $html .= '<label>' . htmlspecialchars($key) . ': ';
@@ -167,25 +154,21 @@ function render_plugin_settings_form(string $plugin, array $settings): string {
         $label = $field['label'] ?? $key;
         $type = $field['type'] ?? 'text';
         $value = $settings[$key] ?? ($field['default'] ?? '');
-
         $html .= '<label>' . htmlspecialchars($label) . ': ';
-
         switch ($type) {
             case 'boolean':
                 $checked = ($value === true || $value === '1' || $value === 1) ? 'checked' : '';
                 $html .= '<input type="checkbox" name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']" value="1" ' . $checked . '>';
                 break;
-
             case 'number':
                 $min = isset($field['min']) ? ' min="' . (int)$field['min'] . '"' : '';
                 $max = isset($field['max']) ? ' max="' . (int)$field['max'] . '"' : '';
                 $html .= '<input type="number" name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']" value="' . htmlspecialchars($value) . '"' . $min . $max . '>';
                 break;
-
             case 'select':
                 $optionsByCategory = [];
                 if (!empty($field['options_source']) && $field['options_source'] === 'pages') {
-                    $pages = getAllPages(); // aus helpers.php
+                    $pages = getAllPages();
                     foreach ($pages as $page) {
                         $category = $page['category'];
                         $keyValue = $page['category'] . '/' . $page['filename'];
@@ -193,12 +176,9 @@ function render_plugin_settings_form(string $plugin, array $settings): string {
                         $optionsByCategory[$category][$keyValue] = $title;
                     }
                 } elseif (!empty($field['options'])) {
-                    // Fallback: keine Kategorien, nur flache Liste
                     $optionsByCategory[''] = $field['options'];
                 }
-
                 $html .= '<select name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']">';
-
                 foreach ($optionsByCategory as $category => $options) {
                     if ($category !== '') {
                         $html .= '<optgroup label="' . htmlspecialchars($category) . '">';
@@ -211,19 +191,15 @@ function render_plugin_settings_form(string $plugin, array $settings): string {
                         $html .= '</optgroup>';
                     }
                 }
-
                 $html .= '</select>';
                 break;
-
             case 'textarea':
                 $html .= '<textarea name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']">' . htmlspecialchars($value) . '</textarea>';
                 break;
-
             case 'password':
                 $placeholder = isset($field['placeholder']) ? ' placeholder="' . htmlspecialchars($field['placeholder']) . '"' : '';
                 $html .= '<input type="password" name="plugin_settings[' . htmlspecialchars($plugin) . '][' . htmlspecialchars($key) . ']" value=""' . $placeholder . '>';
                 break;
-
             case 'text':
             default:
                 $placeholder = isset($field['placeholder']) ? ' placeholder="' . htmlspecialchars($field['placeholder']) . '"' : '';
@@ -233,49 +209,25 @@ function render_plugin_settings_form(string $plugin, array $settings): string {
         $html .= '</label>';
     }
     $html .= '</fieldset>';
-
     return $html;
 }
-
 
 ob_start();
 ?>
 
 <h1><?= htmlspecialchars($pageTitle) ?></h1>
 
-<?php if ($message): ?>
-    <div class="message <?= htmlspecialchars($messageType) ?>">
-        <?= nl2br(htmlspecialchars($message)) ?>
-    </div>
-<?php endif; ?>
+<label for="filter"><?= __('search_plugins') ?>:</label>
+<input id="filter" class="admin-search" type="search" placeholder="<?= __('search_plugins_placeholder') ?>">
 
-<!-- Suchfeld -->
-<label for="pluginSearch"><?= __('search_plugins') ?>:</label>
-<input id="pluginSearch"  class="admin-search" type="search" placeholder="<?= __('search_plugins_placeholder') ?>">
-
-<!-- Drag & Drop Upload -->
 <form id="pluginUploadForm" class="upload-form" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-
-    <div id="dropZone"
-         class="drop-zone"
-         tabindex="0"
-         role="button"
-         aria-label="<?= __('upload_instruction') ?>">
+    <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="<?= __('upload_instruction') ?>">
         <p><?= __('upload_instruction') ?></p>
-
-        <input
-            type="file"
-            name="plugin_zip"
-            accept=".zip"
-            hidden
-            aria-label="Choose a zip file"
-        >
+        <input type="file" name="plugin_zip" accept=".zip" hidden aria-label="Choose a zip file" required>
     </div>
-    
     <button type="submit"><?= __('upload') ?></button>
 </form>
-
 
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
@@ -293,42 +245,39 @@ ob_start();
                         $pluginSettings = load_plugin_settings($plugin);
                         $pluginInfo = load_plugin_info($plugin);
                     ?>
-                    <details class="plugin-block">
+                    <details class="entry-block plugin-block">
                         <summary class="plugin-summary" aria-expanded="false">
-                            <svg class="toggle-arrow" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                            <svg class="toggle-arrow" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                                 <path d="M5 3l5 5-5 5"/>
                             </svg>
-
                             <input type="checkbox"
                                    id="plugin_<?= htmlspecialchars($plugin) ?>"
                                    name="plugins[]"
                                    value="<?= htmlspecialchars($plugin) ?>"
                                    <?= $checked ?>>
-
                             <label for="plugin_<?= htmlspecialchars($plugin) ?>">
-                                <strong><?= htmlspecialchars($pluginInfo['name'] ?? $plugin) ?></strong>
+                                <span class="entry-name"><?= htmlspecialchars($pluginInfo['name'] ?? $plugin) ?></span>
                                 <?php if ($pluginInfo): ?>
                                     – <?= __('version') ?> <?= htmlspecialchars($pluginInfo['version']) ?>, <?= __('by') ?> <?= htmlspecialchars($pluginInfo['author']) ?>
                                 <?php endif; ?>
                             </label>
 
-                            <button type="button"
-    class="maru-delete delete-plugin"
-    data-plugin="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
-    data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
-    data-message="<?= htmlspecialchars(sprintf(__('delete_confirm_plugin'), $plugin), ENT_QUOTES) ?>"
-    title="<?= __('delete') ?>">
-    <?= getIcon('delete') ?>
-</button>
-
-
+                            <button type="button" class="maru-delete js-delete"  aria-label="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>" 
+                            data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES) ?>"
+                                    data-message="<?= htmlspecialchars(__('delete_confirm_plugin'), ENT_QUOTES) ?>"
+                                    data-url="plugin_delete.php"
+                                    data-form="deletePluginForm"
+                                    data-input="deletePluginInput"
+                                    data-value="<?= htmlspecialchars($plugin, ENT_QUOTES) ?>"
+                                   >
+                                <?= getIcon('delete') ?>
+                            </button>
                         </summary>
 
                         <div class="maru-ext-details plugin-details">
                             <?php if ($pluginInfo): ?>
                                 <p><strong><?= __('description') ?>:</strong> <?= nl2br(htmlspecialchars($pluginInfo['description'] ?? '-')) ?></p>
                             <?php endif; ?>
-
                             <?= render_plugin_settings_form($plugin, $pluginSettings) ?>
                         </div>
                     </details>
@@ -345,19 +294,8 @@ ob_start();
     <input type="hidden" name="delete_plugin" id="deletePluginInput">
 </form>
 
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const pluginList = document.getElementById('pluginList');
-    const statusBox  = document.getElementById('statusBox');
-    const dropZone   = document.getElementById('dropZone');
-    const fileInput  = dropZone ? dropZone.querySelector('input[type="file"]') : null;
-    const csrfToken  = <?= json_encode($csrfToken) ?>;
-    const searchInput = document.getElementById('pluginSearch');
-
-    /* ===============================
-       Accessibility: aria-expanded
-    =============================== */
     document.querySelectorAll('details.plugin-block').forEach(details => {
         const summary = details.querySelector('summary.plugin-summary');
         details.addEventListener('toggle', () => {
@@ -365,149 +303,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    /* ===============================
-       Plugin löschen (AJAX)
-    =============================== */
-    
-    if (pluginList) {
-        pluginList.querySelectorAll('.delete-plugin').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault(); // Verhindert das sofortige Löschen
-
-                const plugin = btn.dataset.plugin;
-                if (!plugin) return;
-
-                // Nur das zentrale Modal aufrufen
-                if (typeof confirmModal === 'function') {
-                    confirmModal(
-                        btn.dataset.title || '<?= addslashes(__('delete')) ?>',
-                        btn.dataset.message || '<?= addslashes(__('confirm_delete_plugin')) ?>'.replace('%s', plugin),
-                        null, // Keine URL hier, wir nutzen den Action-Callback
-                        () => {
-                            const form = document.getElementById('deletePluginForm');
-                            const input = document.getElementById('deletePluginInput');
-                            if (form && input) {
-                                input.value = plugin;  // Das Plugin an das versteckte Input-Element übergeben
-                                form.submit();         // Form absenden, erst jetzt wird das Plugin gelöscht
-                            }
-                        }
-                    );
-                }
-            });
-
-        });
-    }
-
-    /* ===============================
-       Suche
-    =============================== */
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase();
-            document.querySelectorAll('#pluginList > details.plugin-block').forEach(block => {
-                const nameEl = block.querySelector('summary.plugin-summary strong');
-                const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-                block.style.display = name.includes(query) ? '' : 'none';
-            });
-        });
-    }
-
-    /* ===============================
-       Upload: Drag & Drop / Klick
-    =============================== */
-    if (!dropZone || !fileInput) {
-        console.warn('Upload-Dropzone nicht gefunden');
-        return;
-    }
-
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            fileInput.click();
-        }
-    });
-
-    dropZone.addEventListener('dragover', e => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-
-        if (e.dataTransfer.files.length !== 1) {
-            showStatus('<?= addslashes(__('only_one_file')) ?>', 'error');
-            return;
-        }
-
-        fileInput.files = e.dataTransfer.files;
-        upload();
-    });
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length === 1) {
-            upload();
-        }
-    });
-
-    function upload() {
-        const file = fileInput.files[0];
-
-        if (!file.name.toLowerCase().endsWith('.zip')) {
-            showStatus('<?= addslashes(__('only_zip_files')) ?>', 'error');
-            fileInput.value = '';
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('plugin_zip', file);
-        formData.append('csrf_token', csrfToken);
-
-        fetch('plugin_delete.php', {
-    method: 'POST',
-    body: formData
-})
-.then(res => res.text())  // Text statt JSON verwenden, um den Inhalt der Antwort zu sehen
-.then(responseText => {
-    console.log(responseText);  // Anzeigen der Antwort in der Konsole
-    try {
-        const data = JSON.parse(responseText);
-        if (data.success) {
-            location.reload();
-        } else {
-            showStatus(data.error || 'Ein Fehler ist aufgetreten', 'error');
-        }
-    } catch (e) {
-        showStatus('Fehler beim Verarbeiten der Antwort', 'error');
-    }
-})
-.catch(error => {
-    showStatus('Fehler beim Verarbeiten der Anfrage', 'error');
-});
-    }
-
-    /* ===============================
-       Statusmeldung
-    =============================== */
-    function showStatus(message, type) {
-        if (!statusBox) return;
-        statusBox.textContent = message;
-        statusBox.className = 'message ' + type;
-        statusBox.style.display = 'block';
-        setTimeout(() => {
-            statusBox.style.display = 'none';
-        }, 4000);
-    }
 });
 </script>
 
 <?php
 $content = ob_get_clean();
-
 include '_layout.php';

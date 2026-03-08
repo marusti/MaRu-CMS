@@ -1,7 +1,7 @@
 <!-- Vorschau-Dialog -->
 <dialog id="imagePreviewDialog"
         class="modal"
-        aria-labelledby="modalTitle"  <!-- Change to match the id -->
+        aria-labelledby="modalTitle"  
         aria-describedby="previewModalMessage">
 
     <div id="modalTitle"><?= __('preview') ?></div>  <!-- Ensure this matches -->

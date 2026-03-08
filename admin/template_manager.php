@@ -4,6 +4,9 @@ session_start();
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php';
 
+// Signal, dass diese Seite Filter braucht
+$pageHasFilter = true;
+$pageHasDialog = true;
 // CSRF
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -18,8 +21,9 @@ $settings = file_exists($settingsFile)
     : [];
 
 $activeTemplate = $settings['template'] ?? 'default';
-$message = '';
-$messageType = 'success';
+
+// Zentrale Messages
+$messages = [];
 
 /* ===============================
    POST
@@ -28,8 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!hash_equals($csrfToken, $_POST['csrf_token'] ?? '')) {
         http_response_code(403);
-        $message = __('invalid_csrf_token');
-        $messageType = 'error';
+        addMessage($messages, __('invalid_csrf_token'), 'error');
     }
 
     // Template aktivieren
@@ -38,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings['template'] = $tpl;
         file_put_contents($settingsFile, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         $activeTemplate = $tpl;
-        $message = sprintf(__('template_activated'), $tpl);
+        addMessage($messages, sprintf(__('template_activated'), $tpl), 'success');
     }
 
     // Template löschen
@@ -55,45 +58,115 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             @rmdir($path);
 
-            $message = sprintf(__('template_deleted'), $tpl);
+            addMessage($messages, sprintf(__('template_deleted'), $tpl), 'success');
         }
     }
-    
+
     // Template hochladen
-    elseif (isset($_FILES['template_zip']) && $_FILES['template_zip']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = $templateDir;
-        $zipFile = $_FILES['template_zip']['tmp_name'];
-        $zipName = basename($_FILES['template_zip']['name']);
+// Template hochladen
+elseif (isset($_FILES['template_zip'])) {
+    $uploadDir = $templateDir;
+    $zipFile = $_FILES['template_zip']['tmp_name'];
+    $zipName = basename($_FILES['template_zip']['name']);
+    $templateFolder = pathinfo($zipName, PATHINFO_FILENAME); 
+    $extractPath = $uploadDir . '/' . $templateFolder;
 
-        // Überprüfen ob die Datei eine ZIP-Datei ist
-        if (pathinfo($zipName, PATHINFO_EXTENSION) !== 'zip') {
-            $message = __('invalid_zip_file');
-            $messageType = 'error';
-        } else {
-            // Entpacken der ZIP-Datei
-            $zip = new ZipArchive();
-            if ($zip->open($zipFile) === true) {
-                $extractPath = $uploadDir . '/' . pathinfo($zipName, PATHINFO_FILENAME);
-                if (!file_exists($extractPath)) {
-                    mkdir($extractPath, 0755, true);
-                }
-                $zip->extractTo($extractPath);
-                $zip->close();
-
-                // Rückmeldung nach erfolgreichem Upload
-                $message = sprintf(__('template_uploaded'), $zipName);
-                $messageType = 'success';
-            } else {
-                $message = __('failed_to_extract_zip');
-                $messageType = 'error';
+    // CSRF prüfen
+    if (!hash_equals($csrfToken, $_POST['csrf_token'] ?? '')) {
+        $templateExistsError = __('invalid_csrf_token');
+    }
+    elseif ($_FILES['template_zip']['error'] !== UPLOAD_ERR_OK) {
+        $templateExistsError = __('upload_error');
+    }
+    elseif (strtolower(pathinfo($zipName, PATHINFO_EXTENSION)) !== 'zip') {
+        $templateExistsError = __('invalid_zip_file');
+    }
+    elseif (file_exists($extractPath)) {
+        // Version des installierten Templates
+        $installedVersion = '';
+        $installedInfoFile = $extractPath . '/info.json';
+        if (file_exists($installedInfoFile)) {
+            $installedData = json_decode(file_get_contents($installedInfoFile), true);
+            if (isset($installedData['version'])) {
+                $installedVersion = $installedData['version'];
             }
         }
-    } elseif ($_FILES['template_zip']['error'] !== UPLOAD_ERR_OK) {
-        $message = __('upload_error');
-        $messageType = 'error';
+
+        // Version des neuen Templates aus der ZIP
+        $newVersion = '';
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile) === true) {
+            // Root-Ordner der ZIP ermitteln
+            $firstFolder = '';
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $parts = explode('/', $stat['name']);
+                if (!empty($parts[0])) {
+                    $firstFolder = $parts[0];
+                    break;
+                }
+            }
+
+            // info.json im Root-Ordner lesen
+            $infoIndex = $zip->locateName($firstFolder . '/info.json', ZipArchive::FL_NOCASE | ZipArchive::FL_NODIR);
+            if ($infoIndex !== false) {
+                $contents = $zip->getFromIndex($infoIndex);
+                $infoData = json_decode($contents, true);
+                if (isset($infoData['version'])) {
+                    $newVersion = $infoData['version'];
+                }
+            }
+            $zip->close();
+        }
+
+        // Dialog-Fehler zusammenstellen
+        $templateExistsError = sprintf(
+            __('template_already_exists_versions'),
+            $templateFolder,
+            $installedVersion ?: __('no_version_info'),
+            $newVersion ?: __('no_version_info')
+        );
+    }
+    else {
+        // ZIP entpacken
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile) === true) {
+            // Root-Ordner der ZIP
+            $firstFolder = '';
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $parts = explode('/', $stat['name']);
+                if (!empty($parts[0])) {
+                    $firstFolder = $parts[0];
+                    break;
+                }
+            }
+
+            if (!file_exists($extractPath)) mkdir($extractPath, 0755, true);
+
+            // Dateien extrahieren ohne doppelten Root-Ordner
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $fileName = $stat['name'];
+                $relativePath = preg_replace('#^' . preg_quote($firstFolder . '/', '#') . '#', '', $fileName);
+                if ($relativePath === '') continue;
+                if (substr($fileName, -1) === '/') {
+                    @mkdir($extractPath . '/' . $relativePath, 0755, true);
+                } else {
+                    file_put_contents($extractPath . '/' . $relativePath, $zip->getFromIndex($i));
+                }
+            }
+
+            $zip->close();
+            addMessage($messages, sprintf(__('template_uploaded'), $templateFolder), 'success');
+        } else {
+            $templateExistsError = __('failed_to_extract_zip');
+        }
+    }
+} elseif (isset($_FILES['template_zip']) && $_FILES['template_zip']['error'] !== UPLOAD_ERR_OK) {
+        addMessage($messages, __('upload_error'), 'error');
     }
 }
-
 
 /* ===============================
    Templates laden
@@ -141,14 +214,8 @@ ob_start();
 
 <h1><?= htmlspecialchars($pageTitle) ?></h1>
 
-<?php if ($message): ?>
-    <div class="message <?= htmlspecialchars($messageType) ?>">
-        <?= htmlspecialchars($message) ?>
-    </div>
-<?php endif; ?>
-
-<label for="templateSearch"><?= __('search_templates') ?>:</label>
-<input id="templateSearch" class="admin-search" type="search"
+<label for="filter"><?= __('search_templates') ?>:</label>
+<input id="filter" class="admin-search" type="search"
        placeholder="<?= __('search_templates_placeholder') ?>">
        
 <form class="upload-form" method="post" enctype="multipart/form-data" id="uploadForm">
@@ -161,6 +228,15 @@ ob_start();
     <button type="submit"><?= __('upload') ?></button>
 </form>
 
+<dialog id="errorDialog" class="modal">
+    <form method="dialog">
+        <p id="dialogMessage"><?= htmlspecialchars($templateExistsError ?? '') ?></p>
+        <menu>
+            <button value="ok">OK</button>
+        </menu>
+    </form>
+</dialog>
+
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
@@ -169,7 +245,7 @@ ob_start();
 
 <div class="template-list">
 <?php foreach ($templates as $tpl): ?>
-    <details class="template-block <?= $tpl['folder'] === $activeTemplate ? 'active' : '' ?>">
+    <details class="entry-block template-block <?= $tpl['folder'] === $activeTemplate ? 'active' : '' ?>">
         <summary class="template-summary" aria-expanded="false">
 
             <svg class="toggle-arrow" viewBox="0 0 16 16" aria-hidden="true">
@@ -183,24 +259,20 @@ ob_start();
                    <?= $tpl['folder'] === $activeTemplate ? 'checked' : '' ?>>
 
             <label for="template_<?= htmlspecialchars($tpl['folder']) ?>">
-                <strong><?= htmlspecialchars($tpl['name']) ?></strong>
-                
+                <span class="entry-name"><?= htmlspecialchars($tpl['name']) ?></span>
             </label>
             
             <?php if ($tpl['folder'] === $activeTemplate): ?>
-                    <span class="active-badge"><?= __('active') ?></span>
-                <?php endif; ?>
+                <span class="active-badge"><?= __('active') ?></span>
+            <?php endif; ?>
 
             <?php if ($tpl['folder'] !== $activeTemplate): ?>
-                <button type="button"
-        class="maru-delete delete-template"
-        data-title="<?= htmlspecialchars(__('delete'), ENT_QUOTES, 'UTF-8') ?>"
-        data-message="<?= htmlspecialchars(__('delete_confirm_template'), ENT_QUOTES, 'UTF-8') ?>"
-        data-template="<?= htmlspecialchars($tpl['folder'], ENT_QUOTES, 'UTF-8') ?>"
-        title="<?= __('delete') ?>">
+                <button class="maru-delete js-delete" aria-label="<?= htmlspecialchars(__('delete')) ?>" data-title="<?= htmlspecialchars(__('delete')) ?>" data-message="<?= htmlspecialchars(__('delete_confirm_template')) ?>"
+    data-form="deleteTemplateForm"
+    data-input="deleteTemplateInput"
+    data-value="<?= htmlspecialchars($tpl['folder']) ?>">
     <?= getIcon('delete') ?>
 </button>
-
             <?php endif; ?>
 
         </summary>
@@ -246,13 +318,16 @@ document.querySelectorAll('details.template-block').forEach(d => {
     );
 });
 
-/* Suche */
-document.getElementById('templateSearch').addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    document.querySelectorAll('.template-block').forEach(b => {
-        const name = b.querySelector('summary strong')?.textContent.toLowerCase() || '';
-        b.style.display = name.includes(q) ? '' : 'none';
-    });
+
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dialog = document.getElementById('errorDialog');
+    const message = dialog.querySelector('#dialogMessage').textContent.trim();
+
+    if (message) {
+        dialog.showModal(); // öffnet das Dialog, wenn Text vorhanden
+    }
 });
 </script>
 

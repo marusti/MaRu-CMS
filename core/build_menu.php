@@ -6,88 +6,79 @@ function build_menu($categoriesPath, $pagesDir) {
     $baseUrl = rtrim($settings['base_url'] ?? '', '/');
     $useModRewrite = !empty($settings['mod_rewrite']);
 
+    $categories = file_exists($categoriesPath) ? json_decode(file_get_contents($categoriesPath), true) : [];
+
+    // 🔹 Kategorien nach order sortieren, default 9999
+    usort($categories, fn($a, $b) => ($a['order'] ?? 9999) <=> ($b['order'] ?? 9999));
+
     $menuHtml = '<nav role="navigation" aria-label="Hauptmenü">';
     $menuHtml .= '<ul class="main-menu">';
 
-    $categories = file_exists($categoriesPath) ? json_decode(file_get_contents($categoriesPath), true) : [];
+    // Rekursive Funktion zum Bauen des Menüs
+    $buildCategoryMenu = function($categories, $pagesDir, $baseUrl, $useModRewrite) use (&$buildCategoryMenu) {
+        $html = '';
 
-    foreach ($categories as $category) {
-        $categoryId = $category['id'];
-        $categoryName = $category['name'];
+        // Kategorien sortieren
+        usort($categories, fn($a, $b) => ($a['order'] ?? 9999) <=> ($b['order'] ?? 9999));
 
-        $menuHtml .= '<li class="menu-item">';
-        $menuHtml .= '<button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" onclick="toggleSubmenu(this)">';
-        $menuHtml .= htmlspecialchars($categoryName) . '</button>';
-        $menuHtml .= '<ul class="submenu" hidden>';
+        foreach ($categories as $category) {
+            $categoryId = $category['id'];
+            $categoryName = $category['name'];
 
-        $categoryPath = rtrim($pagesDir, '/') . '/' . $categoryId;
-        if (is_dir($categoryPath)) {
-            $files = scandir($categoryPath);
+            $html .= '<li class="menu-item">';
+            $html .= '<button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" onclick="toggleSubmenu(this)">';
+            $html .= htmlspecialchars($categoryName) . '</button>';
 
-$pages = [];
+            $html .= '<ul class="submenu" hidden>';
 
-foreach ($files as $file) {
+            // Seiten innerhalb der Kategorie
+            $categoryPath = rtrim($pagesDir, '/') . '/' . $categoryId;
+            $pages = [];
+            if (is_dir($categoryPath)) {
+                $files = scandir($categoryPath);
 
-    if (pathinfo($file, PATHINFO_EXTENSION) !== 'json') {
-        continue;
-    }
+                foreach ($files as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) !== 'json') continue;
 
-    $jsonPath = $categoryPath . '/' . $file;
+                    $meta = json_decode(file_get_contents($categoryPath . '/' . $file), true);
+                    if (!is_array($meta)) continue;
+                    if (($meta['status'] ?? 'draft') !== 'published') continue;
 
-    $meta = json_decode(file_get_contents($jsonPath), true);
+                    $pageId = $meta['id'] ?? pathinfo($file, PATHINFO_FILENAME);
+                    $pages[] = [
+                        'id' => $pageId,
+                        'title' => $meta['title'] ?? ucfirst($pageId),
+                        'order' => isset($meta['order']) ? (int)$meta['order'] : 9999
+                    ];
+                }
 
-    if (!is_array($meta)) {
-        continue;
-    }
+                // Seiten nach order sortieren
+                usort($pages, fn($a, $b) => $a['order'] <=> $b['order']);
 
-    // Nur veröffentlichte Seiten anzeigen
-    if (($meta['status'] ?? 'draft') !== 'published') {
-        continue;
-    }
+                foreach ($pages as $page) {
+                    $relPath = $categoryId . '/' . $page['id'];
+                    $pageUrl = $useModRewrite
+                        ? $baseUrl . '/' . $relPath
+                        : $baseUrl . '/index.php?page=' . rawurlencode($relPath);
 
-    $pageId = $meta['id'] ?? pathinfo($file, PATHINFO_FILENAME);
+                    $html .= '<li><a href="' . htmlspecialchars($pageUrl) . '">' .
+                             htmlspecialchars($page['title']) . '</a></li>';
+                }
+            }
 
-    $pages[] = [
+            // Sub-Kategorien rekursiv einfügen
+            if (!empty($category['children'])) {
+                $html .= $buildCategoryMenu($category['children'], $pagesDir, $baseUrl, $useModRewrite);
+            }
 
-        'id' => $pageId,
-
-        'title' => $meta['title'] ?? ucfirst($pageId),
-
-        'order' => isset($meta['order'])
-            ? (int)$meta['order']
-            : 9999
-
-    ];
-}
-
-/**
- * Sortieren nach order
- */
-usort($pages, fn($a, $b) => $a['order'] <=> $b['order']);
-
-/**
- * Menü bauen
- */
-foreach ($pages as $page) {
-
-    $relPath = $categoryId . '/' . $page['id'];
-
-    $pageUrl = $useModRewrite
-        ? $baseUrl . '/' . $relPath
-        : $baseUrl . '/index.php?page=' . rawurlencode($relPath);
-
-    $menuHtml .= '<li><a href="' .
-        htmlspecialchars($pageUrl) .
-        '">' .
-        htmlspecialchars($page['title']) .
-        '</a></li>';
-}
-
+            $html .= '</ul>';
+            $html .= '</li>';
         }
 
-        $menuHtml .= '</ul>';
-        $menuHtml .= '</li>';
-    }
+        return $html;
+    };
+
+    $menuHtml .= $buildCategoryMenu($categories, $pagesDir, $baseUrl, $useModRewrite);
 
     $menuHtml .= '</ul>';
     $menuHtml .= '</nav>';

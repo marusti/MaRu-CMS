@@ -8,9 +8,9 @@ if (!isset($_SESSION['admin'])) {
 }
 
 // CSRF-Token-Überprüfung
-if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
-    die('Ungültiges CSRF-Token');
-}
+ if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        die('Invalid CSRF token');
+    }
 
 $uploadDir = __DIR__ . '/../uploads/';
 $relativePath = str_replace(['..', "\0"], '', $_POST['filename']);  // Sicherheitsmaßnahme

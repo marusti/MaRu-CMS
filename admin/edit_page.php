@@ -2,6 +2,8 @@
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php'; 
 
+$pageHasEditor = true;
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
@@ -41,6 +43,9 @@ $data = [
 
 // Seite laden, falls ID gesetzt
 if ($id) {
+    $found = false;
+
+    // Normaler Fall: Unterordner
     foreach (glob($pagesBaseDir . '/*/' . $id . '.md') as $mdFile) {
         $categoryDir = basename(dirname($mdFile));
         $jsonFile = $pagesBaseDir . '/' . $categoryDir . '/' . $id . '.json';
@@ -58,8 +63,24 @@ if ($id) {
                 'status' => $meta['status'] ?? 'draft',
                 'content' => file_exists($mdFile) ? file_get_contents($mdFile) : ''
             ];
+            $found = true;
             break;
         }
+    }
+
+    // Sonderfall 404.md direkt im Pages-Ordner
+    if (!$found && $id === '404') {
+        $mdFile = $pagesBaseDir . '/404.md';
+        $data['id'] = '404';
+        $data['title'] = '404 – Not Found';
+        $data['category'] = '';
+        $data['content'] = file_exists($mdFile) ? file_get_contents($mdFile) : '';
+        $data['status'] = 'published';
+        $data['meta_description'] = '';
+        $data['meta_keywords'] = '';
+        $data['default_image'] = '';
+        $data['default_image_alt'] = '';
+        $data['robots'] = 'noindex, follow';
     }
 }
 
@@ -83,6 +104,7 @@ ob_start();
 
     <!-- TAB: Content -->
     <div id="tab-content" class="tab-content active">
+    	<div class="create-card">
         <label><?= __('title') ?>:
             <input type="text" id="page_title" name="title" value="<?= htmlspecialchars($data['title']) ?>" required>
         </label>
@@ -92,14 +114,27 @@ ob_start();
         </label>
 
         <label><?= __('category') ?>:
-            <select name="category" required>
-                <?php foreach ($categories as $cat): ?>
-                    <option value="<?= htmlspecialchars($cat['id']) ?>" <?= $data['category']===$cat['id']?'selected':'' ?>>
-                        <?= htmlspecialchars($cat['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </label>
+    <select name="category" required>
+        <?php
+        // Rekursive Funktion zum Rendern der Kategorien inkl. Sub-Kategorien
+        function renderCategoryOptions($categories, $selected = '', $level = 0) {
+            foreach ($categories as $cat) {
+                $indent = str_repeat('&nbsp;&nbsp;&nbsp;', $level); // Einrückung
+                $isSelected = $selected === $cat['id'] ? 'selected' : '';
+                echo '<option value="' . htmlspecialchars($cat['id']) . '" ' . $isSelected . '>' .
+                    $indent . htmlspecialchars($cat['name']) .
+                    '</option>';
+
+                if (!empty($cat['children'])) {
+                    renderCategoryOptions($cat['children'], $selected, $level + 1);
+                }
+            }
+        }
+
+        renderCategoryOptions($categories, $data['category']);
+        ?>
+    </select>
+</label>
 
         <label><?= __('status') ?>:
             <select name="status" required>
@@ -107,6 +142,7 @@ ob_start();
                 <option value="published" <?= $data['status']==='published'?'selected':'' ?>><?= __('Veröffentlicht') ?></option>
             </select>
         </label>
+        </div>
 
         <!-- Toolbar -->
         <div id="toolbar" class="md-toolbar">
@@ -170,11 +206,15 @@ ob_start();
 
 
         <div id="editor-wrapper">
+        <div>
+<h3>Editor</h3>
             <textarea id="editor" class="md-editor"><?= htmlspecialchars($data['content']) ?></textarea>
             <input type="hidden" id="content" name="content">
-
+            </div>
+            <div>
+<h3>Live Preview</h3>
             <div id="live-preview-panel">
-                <h3>Live Preview</h3>
+                
                 <iframe id="livePreviewFrame"></iframe>
             </div>
         </div>
