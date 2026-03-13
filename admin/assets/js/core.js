@@ -1,19 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Sidebar toggle
-  const toggle = document.getElementById('toggleSidebar');
+    const toggle = document.getElementById('toggleSidebar');
+
   if (toggle) {
     toggle.addEventListener('click', () => {
-      document.body.classList.toggle('sidebar-collapsed');
-      localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+
+      document.documentElement.classList.toggle('sidebar-collapsed');
+
+      localStorage.setItem(
+        'sidebar-collapsed',
+        document.documentElement.classList.contains('sidebar-collapsed')
+      );
+
     });
-
-    if (localStorage.getItem('sidebar-collapsed') === 'true') {
-      document.body.classList.add('sidebar-collapsed');
-    }
-  }  
-
-
-
+  }
+   
   // Theme select
   const themeSelect = document.getElementById('theme-select');
   const root = document.documentElement;
@@ -34,4 +35,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-

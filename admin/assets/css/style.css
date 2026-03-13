@@ -1,32 +1,32 @@
 :root {
   --primary-color: #0077cc;
   --secondary-color: #04315f;
-  --highlight-color: #fff4e5;
-  --highlight-border: #ffa500;
+  
   --bg-color-light: #fafafa;
   --bg-color-dark: #1a1a2e;
-  --text-color-light: #333;
-  --text-color-dark: #fff;
-  --border-radius: 6px;
+ --border-radius: 6px;
+   --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    --drop-zone-border: #ccc;
+  --drop-zone-bg: var(--bg-color-light);
+     --error-bg: #f8d7da;
+   --error-border: #f5c6cb;
+  --error-color: #721c24;
+  --font-size-base: 1em;
+  --font-family: system-ui, sans-serif;
+  --highlight-color: #fff4e5;
+  --highlight-border: #ffa500;
+  --invalid-border-color: red;
+  --invalid-bg-color: #ffe5e5;
+  --message-bg: #eef;
+  --message-border-color: #66c;
   --spacing: 1em;
   --spacing-s: .5em;
   --spacing-l: 1.5em;
-  --font-size-base: 1em;
-  --font-family: system-ui, sans-serif;
-  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-   --error-bg: #f8d7da;
-   --error-border: #f5c6cb;
-  --error-color: #721c24;
-  --success-bg: #e6ffed;
+--success-bg: #e6ffed;
   --success-border: #3c763d;
-  --drop-zone-border: #888;
-  --drop-zone-bg: var(--bg-color-light);
-  --file-item-bg: #f0f0f0;
-  --message-bg: #eef;
-  --message-border-color: #66c;
-  --invalid-border-color: red;
-  --invalid-bg-color: #ffe5e5;
-}
+  --text-color-light: #333;
+  --text-color-dark: #fff;
+  }
 
 /* ============================
    🌙 Komplette Dark Version
@@ -40,7 +40,6 @@ html.dark-mode {
   --bg-color-dark: #0d0d0d;
   --text-color-light: #ccc;
   --text-color-dark: #f5f5f5;
-  --file-item-bg: #1e1e1e;
   --message-bg: #1a2238;
   --message-rder-color: #3399ff;
   --drop-zone-bg: #1e1e1e;
@@ -98,9 +97,9 @@ html.dark-mode button,
 html.dark-mode .btn,
 html.dark-mode .activate-button,
 html.dark-mode .preview-link {
-  background: var(--primary-color);
+/*  background: var(--primary-color);
   color: #fff;
-  border: none;
+  border: none;*/
 }
 
 html.dark-mode button:hover,
@@ -120,19 +119,19 @@ html.dark-mode .dashboard li {
 }
 
 /* Drop-Zone */
-html.dark-mode .drop-zone,
-html.dark-mode #dropZone {
+html.dark-mode .drop-zone
+{
   background: #1e1e1e;
   border: 2px dashed #555;
   color: #aaa;
 }
 
 /* File Items */
-html.dark-mode .file-item {
+html.dark-mode .list-item {
 
 }
 
-html.dark-mode .file-item:hover {
+html.dark-mode .list-item:hover {
   box-shadow: 0 0 15px rgba(51, 153, 255, 0.4);
   border-color: #3399ff;
 }
@@ -252,8 +251,7 @@ html.glass-mode textarea:focus {
 
 /* Drop-Zone */
 html.glass-mode .drop-zone,
-html.glass-mode #dropZone,
-html.glass-mode .file-item {
+html.glass-mode .list-item {
   background: rgba(255,255,255,0.12);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur));
@@ -315,20 +313,24 @@ aside {
   padding: var(--spacing);
 }
 
+footer  {    display: flex;
+    justify-content: center; }
+
 footer a {color: var(--highlight-border)}
 
 html.dark-mode header, html.dark-mode footer, html.dark-mode aside {
 background: var(--bg-color-dark);
 }
 
-header h1 {
+header .heading {
   font-size: 1.4em;
+font-weight: 600;;
+letter-spacing: 1px;
   margin-bottom: initial
 }
 
 main {
   padding: var(--spacing);
-/*  background: white;*/
 }
 
 aside nav ul {
@@ -343,7 +345,7 @@ aside nav a {
   padding: 0.5em 0;
 }
 
-aside nav a:hover {
+aside nav a:hover, aside .nav-active {
   background-color: #3e5a72;
 }
 
@@ -359,7 +361,6 @@ input.invalid, select.invalid {
   background-color: var(--success-bg);
   color: var(--bg-color-dark);
   border-left: 6px solid var(--success-border);
-
 }
 
 .message {
@@ -376,9 +377,13 @@ input.invalid, select.invalid {
  
 }
 
+.message:hover {
+  animation-play-state: paused;
+}
+
 .warning {
     background-color: var(--highlight-color);
-    border-left: 6px solid var(--highlight-color-border);
+    border-left: 6px solid var(--highlight-border);
     padding: var(--spacing) var(--spacing) var(--spacing) var(--spacing-l);  
     margin-bottom: var(--spacing);
     border-radius: var(--border-radius);
@@ -406,8 +411,8 @@ input.invalid, select.invalid {
 
 /* Drop Zone */
 .drop-zone {
-  margin: 1em 0;
-  padding: 2em;
+  margin: var(--spacing) 0;
+  padding: var(--spacing-l) ;
   border: 2px dashed var(--drop-zone-border);
   background: var(--drop-zone-bg);
   text-align: center;
@@ -422,18 +427,14 @@ input.invalid, select.invalid {
   border-color: #333;
 }
 
-/* File List */
-.file-list {
-
-}
-
-.file-item {
+.list-item {
 display: flex;
+justify-content: space-between; 
 align-items: center;
 border-bottom: 1px solid #ccc
 }
 
-.file-item:last-child {
+.list-item:last-child {
 border-bottom: none
 }
 
@@ -454,6 +455,11 @@ border-bottom: none
     gap: var(--spacing)
 }
 
+.dialog-buttons {
+display: flex;
+gap: var(--spacing-s)
+}
+
 .image-container {
     flex: 1;
     display: flex;
@@ -468,7 +474,6 @@ border-bottom: none
 }
 
 .info-panel {
- /*   flex: 0 0 250px;*/
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -483,11 +488,6 @@ border-bottom: none
     width: 100%;
 }
 
-#saveAltTextBtn {
-    margin-top: 10px;
-    padding: 5px 10px;
-    cursor: pointer;
-}
 
 /* Template */
 .template-block {
@@ -507,23 +507,13 @@ border-bottom: none
   padding: 4px 6px;
   border-radius: var(--border-radius);
   font-size: 0.75em;
-  margin-left: auto;
+ /* margin-left: auto;*/
   margin-bottom: 7px;
   margin-top: 7px;
   margin-right: 12px;
 }
 
-.actions {
-  margin-top: 0.5em;
-}
-
-.actions .edit-link,
-.actions .delete-button {
-  margin-right: 0.5em;
-  font-size: 0.9em;
-}
-
-/* Plugins */
+/* Plugins / Templates */
 details {
   border: 1px solid #ccc;
   margin-bottom: var(--spacing);
@@ -531,15 +521,38 @@ details {
   overflow: hidden;
 }
 
+details:last-of-type {
+margin-bottom: 0;
+}
+
+.plugin-summary, .template-summary {
+justify-content: space-between; 
+}
 
 .plugin-summary input[type="checkbox"] {
   margin-right: 0.5em;
 }
 
+.fieldset-list {
+ margin-bottom: var(--spacing);
+}
+
 .maru-ext-details {
-  padding: 0.5em 1em;
+  padding: var(--spacing-s) var(--spacing);
   border-top: 1px dashed #ccc;
-  margin-top: 0.5em;
+}
+
+.plugin-details-desc {
+display: block;
+}
+
+.plugin-settings {
+	margin: 0 var(--spacing) var(--spacing) var(--spacing)
+}
+
+.template-details {
+	display: flex;
+	justify-content: space-between; 
 }
 
 /* Dark Mode */
@@ -555,8 +568,7 @@ html.dark-mode .template-card,
 html.dark-mode details {
   background: var(--bg-color-dark);
   color: var(--text-color-dark);
-  border-color: var(--message-border-color);
-  
+ /* border-color: var(--message-border-color);  */
 }
 
 html.dark-mode input,
@@ -594,10 +606,16 @@ margin-bottom: 0
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 
-.cat-name {
+.category-list {
+flex-direction: column;
+}
 
+.sub-categories {
+width: 100%;
+padding-left: var(--spacing-l);
 }
 
 /* --- Badges --- */
@@ -606,8 +624,6 @@ margin-bottom: 0
     padding: 2px 8px;
     border-radius: var(--border-radius);
     font-size: .85em;
-
- /*   color: var(--text-color-dark);*/
 }
 .badge-success { 
 background: var(--success-border);  
@@ -631,96 +647,6 @@ gap: 10px
 }
 .page-actions a.delete { color: #e74c3c; }
 
- #content-manage ul {
-        list-style: none;
-        padding-left: 0;
-        margin-top: 0.5em;
-    }
-
-    #content-manage li {
-        margin-bottom: 0.8em;
-        padding: 0.7em 1em;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: background-color 0.3s ease;
-    }
-
-    #content-manage li:hover {
-        background-color: #eaf4fc;
-    }
-
-    #content-manage form.inline {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4em;
-        margin-left: 1em;
-    }
-
-    #content-manage input[type="text"] {
-        border: 1px solid #ccc;
-        border-radius: var(--border-radius);
-        padding: 0.3em 0.5em;
-        font-size: 0.9em;
-        transition: border-color 0.3s ease;
-    }
-
-    #content-manage input[type="text"]:focus {
-        border-color: #3498db;
-        outline: none;
-    }
-
-    #content-manage button:hover {
-        background-color: #2980b9;
-    }
-
-    #content-manage button.delete {
-        background-color: #e74c3c;
-    }
-
-    #content-manage button.delete:hover {
-        background-color: #c0392b;
-    }
-
-    #content-manage .page-entry strong {
-    }
-
-    #content-manage .page-entry small {
-
-        margin-left: 0.4em;
-    }
-
-    #content-manage a {
-    }
-
-    #content-manage a:hover {
-        text-decoration: underline;
-    }
-
-    #content-manage form#category-form {
-        margin-bottom: 2em;
-        display: flex;
-        gap: 0.5em;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    #content-manage form#category-form input[type="text"] {
-        flex-grow: 1;
-        min-width: 150px;
-        max-width: 400px
-    }
-    
-/* Dashboard-Überschrift */
-h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1em;
-    letter-spacing: 1px;
-}
-
 /* Dashboard Layout (Grid) */
 .dashboard {
     display: grid;
@@ -736,7 +662,6 @@ h1 {
     padding: var(--spacing);
     display: flex;
     flex-direction: column;
-
     transition: all 0.3s ease;
 }
 
@@ -765,8 +690,7 @@ h1 {
     justify-content: space-between;
     padding: 12px 0;
     border-bottom: 1px solid var(--bg-color-dark);
-    font-size: var(--font-size-base);
- 
+    font-size: var(--font-size-base); 
 }
 
 /* Letztes Listenelement ohne Rand */
@@ -780,32 +704,23 @@ h1 {
         font-weight: 600;
     }
     .status.green {
-        color: #27ae60;
+        color: #007A00;
     }
     .status.red {
         color: #e74c3c;
     }
-    
-.status.green {
-        color: #27ae60;
-    }
+
     .status.orange {
         color: #EE6921;
-    }
-    
-    
-     form {
-    /*    margin-top: 2rem;*/
     }
 
    textarea {
 height: 300px;
         width: 100%;
-        padding: var(--spacing);
-        font-size: 1rem;
-        border: 1px solid #ccc;
-        border-radius: var(--border-radius);
-        margin-bottom: var(--spacing-s)
+  /*      padding: var(--spacing-s);*/
+  /*      font-size: 1rem;*/
+ /*       border: 1px solid #ccc;*/
+ /*       border-radius: var(--border-radius);*/
 }
 
     .button-row {
@@ -829,10 +744,6 @@ height: 300px;
     .button-row a:hover {
         opacity: 0.9;
     }    
-    
-.filemanager.message {
-
-}
 
 .upload-form {
     margin-bottom: 1rem;
@@ -851,33 +762,13 @@ height: 300px;
     background-color: #45a049;
 }
 
-.drop-zone:focus {
-    outline: 3px solid #66aaff;
-    outline-offset: 2px;
-}
-
-
-.file-item input[type="checkbox"] {
-margin-left: auto;
-    cursor: pointer;
-    width: 20px;
-    height: 20px;
-    accent-color: #3399ff;
-}
-
-.file-item img {
-    max-height: 100px;
-    border-radius: 5px;
-    margin-bottom: 0.5rem;
-    object-fit: contain;
-    max-width: 100%;
-}
-
 .file-icon {
     display: flex;
+    cursor: pointer;
 }
 
-.filename {
+.filename, .entry-name {
+	display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -922,30 +813,8 @@ details[open] > summary svg.toggle-arrow {
   transform: translateY(-50%) rotate(90deg);
 }
 
-
-
-.plugin-settings label {
-  display: flex;
-  justify-content: space-between;
-
-}
-
-.plugin-settings input[type="text"] {
-  width: 50%;
-  padding: 5px 8px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
-  transition: border-color 0.3s ease;
-}
-
-.plugin-settings input[type="text"]:focus {
-  border-color: #1890ff;
-  outline: none;
-  box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
-}
-
 button.maru-delete {
-  margin-left: auto;
+ /* margin-left: auto;*/
   background: none;
   border: none;
   cursor: pointer;
@@ -956,89 +825,24 @@ button.maru-delete:hover {
   color: #d9363e;
 }
 
-/* Drag & Drop */
-#dropZone {
-  border: 2px dashed #ccc;
-  padding: 20px;
-  text-align: center;
-  margin-bottom: 1em;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-#dropZone.dragover {
-  background-color: #f0f0f0;
-}
-
 /* Suchfeld Styling */
 .admin-search {
-  margin-bottom: 1em;
+
   padding: 6px 10px;
-  font-size: 1rem;
   width: 100%;
   max-width: 400px;
   border: 1px solid #ccc;
   border-radius: 5px;
   transition: border-color 0.3s ease;
 }
-
-.admin-search:focus {
-  border-color: #1890ff;
-  outline: none;
-  box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
-}
-
-  .image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(120px,1fr));
-    gap: var(--spacing-s)
-
-  }
-  .image-grid img {
-    max-width: 100%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    transition: border-color 0.2s;
-  }
-  .image-grid img:hover {
-    border-color: #0066cc;
-  }
     
     .create-card {
     display: grid;
     gap: 10px;    
     }
 
-    form.user-card, .user-card {
-
-    }
-    form.user-card.create-card label,
-    form.user-card.create-card input,
-    form.user-card.create-card select,
-    {
-        display: block;
-        width: 100%;
-        margin-bottom: 12px;
-        font-size: 1rem;
-    }
-    form.user-card.create-card input, form.user-card.create-card select {
-        padding: 8px 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }   
-
-    .users-list { 
-    }
-
-    .user-card {
-    /*    flex: 1 1 300px;*/
-       display: flex;
-    /*    flex-direction: column;*/
-        justify-content: space-between;
-    }
     .user-info {
-        margin-bottom: 10px;
+       
     }
     .user-info strong {
         font-size: 1.2rem;
@@ -1053,50 +857,15 @@ button.maru-delete:hover {
         gap: 8px;
         align-items: center;
     }
-    .actions form {
-        margin: 0;
-        display: flex;
-        gap: 5px;
-        align-items: center;
-    }
-    .actions input[type="password"], .actions select {
-        padding: 6px 8px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        font-size: 0.9rem;
-    }
-
-    }
-    .actions form.delete-user-form button {
-        background: #dc3545;
-    }
-    .actions form.delete-user-form button:hover {
-        background: #b02a37;
-    }
-
-    /* Modal Overlay */
-
-    #cancelDelete {
-        background: #6c757d;
-        color: white;
-    }
-    #cancelDelete:hover {
-        background: #5a6268;
-    }
-    #confirmDelete {
-        background: #dc3545;
-        color: white;
-    }
-    #confirmDelete:hover {
-        background: #b02a37;
-    }
-    #closeErrorModal {
-        background: #007bff;
-        color: white;
-        width: 100px;
-    }
-    #closeErrorModal:hover {
-        background: #0056b3;
+    
+    
+.actions .edit-link {
+  margin-right: 0.5em;
+  font-size: 0.9em;
+}
+    
+    #toolbar {
+margin:var(--spacing) 0  
     }
     
   #toolbar button, #toolbar select, #toolbar input[type="color"] {
@@ -1117,8 +886,7 @@ width:auto
   #editor-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 10px
+  gap: var(--spacing);
   }
   
   #live-preview-panel{
@@ -1159,17 +927,16 @@ border-radius: var(--border-radius);
     border: 0;
 }
 
-    form label {
-
-    }
-    input[type="text"], input[type="password"],select {
-    	background: var(--bg-color-light);
-        width: 100%;
+    input,select, textarea {
+    	background: var(--text-color-dark);
+font-size: 0.85rem;
    /*     max-width: 400px;*/
-        padding: 6px;
+        padding: var(--spacing-s);
         border: 1px solid #ccc;
         border-radius: var(--border-radius);
-        margin-bottom: var(--spacing-s)
+    }
+    input[type=text], input[type=password], select {
+            width: 100%;
     }
     fieldset {
         padding: var(--spacing);
@@ -1183,8 +950,8 @@ padding: 0 var(--spacing-s);
 
     }
     /* Fokus-Styles verbessern für Barrierefreiheit */
-    a:focus, input:focus, select:focus, button:focus {
-        outline: 3px solid #005fcc;
+    :focus {
+        outline: 3px solid var(--highlight-border);
         outline-offset: 2px;
     }
     
@@ -1235,6 +1002,42 @@ padding: 0 var(--spacing-s);
     box-sizing: border-box;
 }
 
+/*image grid*/
+
+/* 1. Basis (Smartphones / kleinster Screen) */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* kleine Kacheln */
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Bilder */
+.image-grid img {
+    width: 100%;
+    height: 70px; /* fix für mobile */
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid transparent;
+}
+
+/* Hover / Fokus Effekt */
+.image-grid img:hover,
+.image-grid img:focus {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+/* Ausgewähltes Bild */
+.image-grid img.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+}
+
+
 .delete-btn {
     position: absolute;
     top: 6px;
@@ -1263,53 +1066,7 @@ details[open] .summary-arrow {
   transform: rotate(90deg);
 }
 
-.album-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
-.album-tile {
-  cursor: pointer;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  transition: box-shadow 0.3s ease;
-}
-
-.album-tile:hover,
-.album-tile:focus {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  outline: none;
-}
-
-.album-cover img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  display: block;
-}
-
-.album-info {
-  padding: 0.5rem 0.75rem;
-  text-align: center;
-}
-
-.album-info h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.album-info span {
-  font-size: 0.9rem;
-  color: #666;
-}
-
 /* Modal Styles */
-
-/* Gemeinsamer Stil für alle Dialog-Backdrops */
 
   dialog {
 margin: auto;
@@ -1317,7 +1074,6 @@ margin: auto;
   
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.6); /* halbtransparentes Schwarz */
-
 }
 
 /* Dialog selbst */
@@ -1337,7 +1093,7 @@ dialog .maru-close {
   right: 0.5rem;
 }
 
-dialog #modalTitle {
+dialog .dialog-title {
 font-weight: 600
 }
 
@@ -1362,7 +1118,7 @@ opacity: .5
 }
 
 /* Basis-Button-Stil */
-button {
+button, .button {
   display: inline-block;
   padding: 7px 12px;
   font-size: .9rem;
@@ -1375,12 +1131,6 @@ button {
   text-align: center;
   text-decoration: none;
   transition: background-color 0.3s ease, box-shadow 0.2s ease;
-}
-
-/* Fokus-Indikator für Tastaturbenutzer */
-button:focus {
-  outline: 3px solid #ffbf47; /* Gelber Fokusrahmen (WCAG-konform) */
-  outline-offset: 2px;
 }
 
 /* Hover-Zustand */
@@ -1410,12 +1160,37 @@ button[aria-disabled="true"] {
 flex: 1
 }
 
+.maru-toolbar {
+margin-bottom: var(--spacing)
+}
+
 /*Allgemein*/
+
+h1, h2,h3 {    
+    font-weight: 600;
+    margin-bottom: var(--spacing);
+}
+
+h1 {
+font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+h2 {
+font-size: 1.25rem;
+}
+
+h3 {
+font-size: 1.1rem;
+}
+
+.flex {
+display: flex;
+}
 
 /* Responsive Layout */
 @media (min-width: 768px) {
   body {
-    --sidebar-width: 250px;
     display: grid;
     grid-template-areas:
       "header header"
@@ -1426,8 +1201,12 @@ flex: 1
     min-height: 100vh;
     transition: grid-template-columns 0.3s ease;
   }
+  
+  html {
+      --sidebar-width: 250px;
+  }
 
-  body.sidebar-collapsed {
+  html.sidebar-collapsed {
     --sidebar-width: 60px;
   }
 
@@ -1439,6 +1218,7 @@ flex: 1
 
   aside {
     grid-area: sidebar;
+    overflow: hidden;
     height: 100%;
   }
 
@@ -1449,15 +1229,12 @@ flex: 1
 
   footer {
     grid-area: footer;
-    display: flex;
-    justify-content: center; 
   }
   
 /*aside = sidebar*/
 
 /* Normalzustand */
 #sidebar {
-  width: 100%;
   transition: width 0.3s;
     position: relative;
   z-index: 100;
@@ -1470,25 +1247,19 @@ flex: 1
   padding: 10px;
 }
 
-/* Wenn Sidebar zugeklappt ist */
-body.sidebar-collapsed #sidebar {
-  width: 60px;
- /* overflow-x: hidden;*/
-}
-
 /* Texte im zugeklappten Zustand ausblenden */
-body.sidebar-collapsed #sidebar ul li a span {
+html.sidebar-collapsed #sidebar ul li a span {
   display: none;
 }
 
 /* Optional: zentriere Icons im zugeklappten Zustand */
-body.sidebar-collapsed #sidebar ul li a {
+html.sidebar-collapsed #sidebar ul li a {
 	padding: 10px;  
   justify-content: center;
 }
 
 /* Nur aktiv bei zugeklappter Sidebar */
-body.sidebar-collapsed #sidebar a[data-tooltip]::after {
+html.sidebar-collapsed #sidebar a[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
   left: 100%;
@@ -1508,7 +1279,7 @@ body.sidebar-collapsed #sidebar a[data-tooltip]::after {
 }
 
 /* Beim Hover sichtbar machen */
-body.sidebar-collapsed #sidebar a[data-tooltip]:hover::after {
+html.sidebar-collapsed #sidebar a[data-tooltip]:hover::after {
   opacity: 1;
 }
 
@@ -1525,6 +1296,7 @@ body.sidebar-collapsed #sidebar a[data-tooltip]:hover::after {
 .sidebar-header {
   display: flex;
   justify-content: flex-end;
+  margin-bottom: var(--spacing-s);
 }
 
 .sidebar-toggle {
@@ -1546,11 +1318,11 @@ body.sidebar-collapsed #sidebar a[data-tooltip]:hover::after {
   display: none;
 }
 
-body.sidebar-collapsed .sidebar-toggle .icon-collapse {
+html.sidebar-collapsed .sidebar-toggle .icon-collapse {
   display: none;
 }
 
-body.sidebar-collapsed .sidebar-toggle .icon-expand {
+html.sidebar-collapsed .sidebar-toggle .icon-expand {
   display: inline;
 }
 
@@ -1559,5 +1331,55 @@ body.sidebar-collapsed .sidebar-toggle .icon-expand {
         gap: var(--spacing-l);
     }
     
-    .maru-settings {flex-direction: row}
+    .maru-settings {
+    	flex-direction: row;
+    	margin-bottom: var(--spacing-s);
+    }
+    
+    .maru-settings:last-child {
+    margin-bottom: 0;
+    }
+    
+    /*Toolbar*/    
+    .maru-toolbar {
+    	display: flex;
+padding:var(--spacing-s)  ;
+border: 1px solid #ccc;
+border-radius: var(--border-radius);
+    }
+    
+    .maru-toolbar > * {
+display: flex;
+  flex: 1;
+  align-items: center;    
+  gap: var(--spacing-s);
+  font-size: .85em
+    }
+    
+.filename, .entry-name {
+	display: initial;
+    max-width: 400px;
+}
+
+.plugin-details-meta {
+display: flex;
+justify-content: space-between; 
+border-bottom: 1px solid #ccc;
+padding: var(--spacing-s) 0;
+}
+.plugin-details-meta:last-child {
+
+border-bottom: 0}
+.plugin-details-desc {
+display: initial;
+}
+
+/*image grid*/
+    .image-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+    .image-grid img {
+        height: 120px;
+    }
 }

@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // CSRF prüfen
-$plugin = $_POST['plugin'] ?? '';
+$plugin = $_POST['delete_plugin'] ?? '';
 $csrf   = $_POST['csrf_token'] ?? '';
 
 if (!$plugin || !csrf_check($csrf)) {

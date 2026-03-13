@@ -3,6 +3,7 @@ session_start();
 
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php';
+require_once __DIR__ . '/../lib/helpers.php';
 
 // Signal, dass diese Seite Filter braucht
 $pageHasFilter = true;
@@ -46,21 +47,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Template löschen
     elseif (isset($_POST['delete_template'])) {
-        $tpl = basename($_POST['delete_template']);
+    $tpl = basename($_POST['delete_template']);
+    $path = $templateDir . '/' . $tpl;
 
-        if ($tpl !== $activeTemplate) {
-            $path = $templateDir . '/' . $tpl;
+    // Template darf nicht aktiv sein
+    if ($tpl === $activeTemplate) {
+        addMessage($messages, __('cannot_delete_active_template'), 'error');
+    } elseif (!is_dir($path)) {
+        addMessage($messages, __('template_not_found'), 'error');
+    } else {
 
-            $it = new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS);
-            $ri = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
-            foreach ($ri as $file) {
-                $file->isDir() ? rmdir($file) : unlink($file);
-            }
-            @rmdir($path);
+        // Displayname vor dem Löschen laden
+        $displayName = $tpl;
+        $infoFile = $path . '/info.json';
+        if (file_exists($infoFile)) {
+            $data = json_decode(file_get_contents($infoFile), true);
+            if (!empty($data['name'])) $displayName = $data['name'];
+        }
 
-            addMessage($messages, sprintf(__('template_deleted'), $tpl), 'success');
+        // Rekursiv löschen
+        if (rrmdir($path)) {
+            addMessage($messages, sprintf(__('template_deleted'), $displayName), 'success');
+        } else {
+            addMessage($messages, sprintf(__('template_delete_failed'), $displayName), 'error');
         }
     }
+
+    $_SESSION['messages'] = $messages;
+    header("Location: template_manager.php");
+    exit;
+}
 
     // Template hochladen
 // Template hochladen
@@ -158,7 +174,12 @@ elseif (isset($_FILES['template_zip'])) {
             }
 
             $zip->close();
-            addMessage($messages, sprintf(__('template_uploaded'), $templateFolder), 'success');
+addMessage($messages, sprintf(__('template_uploaded'), $templateFolder), 'success');
+
+// Nachricht in Session speichern und Redirect ausführen
+$_SESSION['messages'] = $messages;
+header("Location: template_manager.php");
+exit;
         } else {
             $templateExistsError = __('failed_to_extract_zip');
         }
@@ -213,10 +234,6 @@ ob_start();
 ?>
 
 <h1><?= htmlspecialchars($pageTitle) ?></h1>
-
-<label for="filter"><?= __('search_templates') ?>:</label>
-<input id="filter" class="admin-search" type="search"
-       placeholder="<?= __('search_templates_placeholder') ?>">
        
 <form class="upload-form" method="post" enctype="multipart/form-data" id="uploadForm">
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
@@ -237,17 +254,26 @@ ob_start();
     </form>
 </dialog>
 
+<h2><?= __('existing_templates') ?></h2>
+<div class="maru-toolbar">
+<div class="filter">
+<label for="filter"><?= __('search_templates') ?>:</label>
+<input id="filter" class="admin-search" type="search"
+       placeholder="<?= __('search_templates_placeholder') ?>">
+</div>
+
+       </div>
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
-<fieldset class="plugin-fieldset">
+<fieldset class="fieldset-list">
         <legend class="sr-only"><?= __('select template to activate') ?></legend>
 
 <div class="template-list">
 <?php foreach ($templates as $tpl): ?>
     <details class="entry-block template-block <?= $tpl['folder'] === $activeTemplate ? 'active' : '' ?>">
         <summary class="template-summary" aria-expanded="false">
-
+<div>
             <svg class="toggle-arrow" viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M5 3l5 5-5 5"/>
             </svg>
@@ -261,7 +287,7 @@ ob_start();
             <label for="template_<?= htmlspecialchars($tpl['folder']) ?>">
                 <span class="entry-name"><?= htmlspecialchars($tpl['name']) ?></span>
             </label>
-            
+            </div>
             <?php if ($tpl['folder'] === $activeTemplate): ?>
                 <span class="active-badge"><?= __('active') ?></span>
             <?php endif; ?>
@@ -278,21 +304,41 @@ ob_start();
         </summary>
 
         <div class="maru-ext-details template-details">
-            <?php if ($tpl['screenshot']): ?>
-                <img class="template-screenshot"
-                     src="../templates/<?= urlencode($tpl['folder']) ?>/screenshot.png"
-                     alt="<?= __('preview') ?>">
-            <?php endif; ?>
-
+           <div>
             <p>
-                <strong><?= __('description') ?>:</strong>
-                <?= htmlspecialchars($tpl['description']) ?>
-            </p>
+    <strong><?= __('description') ?>:</strong>
+    <?= htmlspecialchars($tpl['description']) ?>
+</p>
 
+<p>
+    <strong><?= __('version') ?>:</strong>
+    <?= htmlspecialchars($tpl['version'] ?? __('no_version_info')) ?>
+</p>
+
+<p>
+    <strong><?= __('author') ?>:</strong>
+    <?= htmlspecialchars($tpl['author'] ?? __('unknown')) ?>
+</p>
             <a class="edit-link"
                href="edit_template.php?template=<?= urlencode($tpl['folder']) ?>">
                 <?= __('edit') ?>
             </a>
+</div>
+<?php
+// Pfad zum Screenshot
+$screenshotPath = "../templates/" . $tpl['folder'] . "/screenshot.png";
+
+// Prüfen, ob das Bild existiert, sonst Default-Bild verwenden
+if (file_exists($screenshotPath)) {
+    $imageSrc = $screenshotPath;
+} else {
+    $imageSrc = "assets/images/not_ok.svg"; // Pfad zum Default-Bild
+}
+?>
+
+    <img class="template-screenshot"
+         src="<?= htmlspecialchars($imageSrc) ?>"
+         alt="<?= __('preview') ?>">
         </div>
     </details>
 <?php endforeach; ?>

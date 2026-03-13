@@ -1,5 +1,5 @@
 {
-  "name": "Breadcrumb Navigation",
+  "name": "Breadcrumb",
   "version": "1.0",
   "author": "Dein Name",
   "description": "Erzeugt eine Breadcrumb-Navigation basierend auf der aktuellen URL."

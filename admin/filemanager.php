@@ -256,13 +256,6 @@ ob_start();
 ?>
 <h1><?= $selectMode ? 'Bild auswählen' : __('manage_files') ?></h1>
 
-
-
-<!-- Filter für Dateinamen -->
-<label for="filter"><?= __('search_files') ?>:</label>
-<input type="text" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_files_placeholder')) ?>" />
-
-
 <h2><?= __('upload_files') ?></h2>
 
 <form method="post" enctype="multipart/form-data" class="upload-form" id="uploadForm">
@@ -282,7 +275,32 @@ ob_start();
 
 <h2><?= $selectMode ? 'Verfügbare Bilder' : __('existing_files') ?></h2>
 
+<!-- Filter für Dateinamen -->
+<div class="maru-toolbar">
+
+<div class="filter">
+<label for="filter"><?= __('search_files') ?>:</label>
+<input type="text" id="filter" class="admin-search"
+placeholder="<?= htmlspecialchars(__('search_files_placeholder')) ?>" />
+</div>
+
+<div class="type-filter">
+<label for="folderFilter">Ordner:</label>
+
+<select id="folderFilter" class="admin-filter">
+<option value="all">Alle Dateien</option>
+<option value="images">Bilder</option>
+<option value="documents">Dokumente</option>
+<option value="videos">Videos</option>
+<option value="audio">Audio</option>
+<option value="other">Andere</option>
+</select>
+</div>
+
+</div>
+
 <div class="file-list">
+
 <?php
 // Alle Dateien aus dem Verzeichnis holen, ohne nach Ordnern zu gruppieren
 $rii = new RecursiveIteratorIterator(
@@ -299,10 +317,13 @@ foreach ($rii as $file) {
 // Alphabetisch sortieren
 sort($files);
 
+
+
 // Jetzt die Dateien in der alphabetischen Reihenfolge anzeigen
 foreach ($files as $filePath):
     $fileName = basename($filePath);
     $relativePath = str_replace(realpath($uploadBase), '', $filePath);
+$folder = basename(dirname($filePath));
     $relativePath = str_replace('\\','/',$relativePath); // Windows-Slashes fix
     $fileUrl = $baseUrl . '/uploads' . $relativePath;
 
@@ -333,22 +354,24 @@ foreach ($files as $filePath):
     $iconName = $iconMap[$ext] ?? 'file';
     $iconSvg  = getIcon($iconName);
 
-    $thumb = '<div class="file-icon preview-trigger" style="cursor:pointer;">' . $iconSvg . '</div>';
+    $thumb = '<div class="file-icon preview-trigger">' . $iconSvg . '</div>';
 
     // Alt + Caption nur für Bilder
     $dataAlt = $iconName === 'image' ? htmlspecialchars($altTexts[$fileName] ?? '') : '';
     $dataCaption = $iconName === 'image' ? htmlspecialchars($captions[$fileName] ?? '') : '';
 
 ?>
-    <div class="entry-block file-item"
+    <div class="entry-block list-item"
          data-type="<?= in_array($iconName, ['txt', 'pdf', 'zip']) ? 'text' : $iconName ?>" 
          data-url="<?= htmlspecialchars($fileUrl) ?>"
          data-alt="<?= $dataAlt ?>"
          data-caption="<?= $dataCaption ?>"
+data-folder="<?= htmlspecialchars($folder) ?>"
          tabindex="0"
          role="group"
          aria-label="Datei <?= htmlspecialchars($fileName) ?>">
 
+        <div class="flex"> 
         <div class="preview-trigger"
              role="button"
              tabindex="0"
@@ -357,6 +380,7 @@ foreach ($files as $filePath):
         </div>
 
         <div class="entry-name filename"><?= htmlspecialchars($fileName) ?></div>
+        </div>
         <?php if (!$selectMode): ?>
             <button type="button" class="maru-delete js-delete"
         data-file="<?= htmlspecialchars($relativePath) ?>"
@@ -442,10 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentFile = null;
 
-    document.querySelectorAll('.file-item .preview-trigger').forEach(trigger => {
+    document.querySelectorAll('.list-item .preview-trigger').forEach(trigger => {
     trigger.addEventListener('click', async (e) => {
         e.stopPropagation(); // verhindert, dass Checkbox geklickt wird
-        const item = trigger.closest('.file-item');
+        const item = trigger.closest('.list-item');
 
         const file = item.querySelector('.filename').textContent;
         const type = item.dataset.type;
@@ -517,7 +541,7 @@ previewText.style.whiteSpace = 'normal'; // Standard Textumbruch setzen
         const alt = altTextInput.value.trim();
         const caption = captionInput.value.trim();
 
-        const fileItem = [...document.querySelectorAll('.file-item')]
+        const fileItem = [...document.querySelectorAll('.list-item')]
             .find(f => f.querySelector('.filename').textContent === file);
         const img = fileItem?.querySelector('img');
 
@@ -530,7 +554,7 @@ previewText.style.whiteSpace = 'normal'; // Standard Textumbruch setzen
             img.alt = alt;
             img.dataset.caption = caption;
 
-            // data-Attribute im file-item aktualisieren
+            // data-Attribute im list-item aktualisieren
             fileItem.dataset.alt = alt;
             fileItem.dataset.caption = caption;
         }
@@ -588,4 +612,9 @@ previewText.style.whiteSpace = 'normal'; // Standard Textumbruch setzen
 
 <?php
 $content = ob_get_clean();
+
+if (!empty($messages)) {
+    $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
+}
+
 include '_layout.php';

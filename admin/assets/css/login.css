@@ -44,8 +44,8 @@ body.login-page {
 }
 
 /* Fehlertext */
-.error {
-    color: #d9534f;
+.login-container .error {
+    color: #CD322D;
     text-align: center;
     margin-bottom: 1rem;
     font-weight: bold;

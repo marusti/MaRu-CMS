@@ -21,8 +21,10 @@ function deleteCategoryById(&$categories, $id) {
     foreach ($categories as $index => &$cat) {
         if ($cat['id'] === $id) {
             unset($categories[$index]);
+            $categories = array_values($categories);
             return true;
         }
+
         if (!empty($cat['children']) && deleteCategoryById($cat['children'], $id)) {
             return true;
         }
@@ -34,16 +36,14 @@ function deleteCategoryById(&$categories, $id) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
     $id = $_POST['delete_category'];
 
-if (deleteCategoryById($categories, $id)) {
-    file_put_contents($categoriesFile, json_encode(array_values($categories), JSON_PRETTY_PRINT), LOCK_EX);
-    addMessage(
-$messages,
-sprintf(
- __('category_deleted_successfully'),
-$id ?? '' 
- ),
-        'success'
-    );
+    if (deleteCategoryById($categories, $id)) {
+        file_put_contents($categoriesFile, json_encode(array_values($categories), JSON_PRETTY_PRINT), LOCK_EX);
+        addMessage(
+            $messages,
+            sprintf(__('category_deleted_successfully'), $id ?? ''),
+            'success'
+        );
+    }
 }
 
 // Erfolg / Fehler über GET-Parameter
@@ -52,10 +52,7 @@ $categoryName = $_GET['category_name'] ?? null;
 if (isset($_GET['success']) && $_GET['success'] === 'category') {
     addMessage(
         $messages,
-        sprintf(
-            __('category_created_successfully'), 
-            $categoryName ?? ''  
-        ),
+        sprintf(__('category_created_successfully'), $categoryName ?? ''),
         'success'
     );
 } elseif (isset($_GET['error'])) {
@@ -63,6 +60,7 @@ if (isset($_GET['success']) && $_GET['success'] === 'category') {
         case 'category':
             addMessage($messages, __('category_creation_failed'), 'error');
             break;
+
         case 'category_exists':
             addMessage(
                 $messages,
@@ -75,7 +73,6 @@ if (isset($_GET['success']) && $_GET['success'] === 'category') {
             break;
     }
 }
-}
 
 ob_start();
 ?>
@@ -83,15 +80,13 @@ ob_start();
 <div id="content-manage">
 
     <h1><?= __('manage_categories') ?></h1>
-    
-    <label for="filter"><?= __('search_cat') ?>:</label>
-    <input id="filter" class="admin-search" type="search"
-           placeholder="<?= __('search_cat_placeholder') ?>">
-
-    <form method="post" action="save_category.php" id="category-form" class="category-form">
+    <h2><?= __('add_category') ?></h2>
+    <form method="post" action="save_category.php" id="category-form" class="maru-card create-card">
+    <div>
         <label for="name"><?= __('name') ?></label>
         <input type="text" id="name" name="name" required oninput="generateId()">
-
+        </div>
+<div>
         <label for="parent_id"><?= __('parent_category') ?></label>
         <select id="parent_id" name="parent_id">
             <option value=""><?= __('none') ?></option>
@@ -109,24 +104,32 @@ ob_start();
             renderParentOptions($categories);
             ?>
         </select>
+        </div>
 
         <input type="hidden" id="id" name="id" readonly required>
-
+<div>
         <button type="submit"><?= __('add_category') ?></button>
+        </div>
     </form>
 
     <h2><?= __('existing_categories') ?></h2>
+<div class="maru-toolbar">
+    <div class="filter">
+        <label for="filter"><?= __('search_cat') ?>:</label>
+    <input id="filter" class="admin-search" type="search" placeholder="<?= __('search_cat_placeholder') ?>">
+    </div>
 
+</div>
     <?php
     function renderCategories($categories) {
         foreach ($categories as $cat):
     ?>
-        <div class="maru-card category-card entry-block">
+        <div class="list-item category-list entry-block">
             <div class="category-header">
                 <span id="cat-<?= htmlspecialchars($cat['id']) ?>" class="entry-name cat-name">
                     <?= htmlspecialchars($cat['name']) ?>
                 </span>
-                <div class="page-actions">
+                <div class="actions">
                     <a href="edit_category.php?id=<?= urlencode($cat['id']) ?>"
                        aria-label="<?= __('edit_category') ?>" title="<?= __('edit_category') ?>">
                         <?= getIcon('edit') ?>
@@ -141,7 +144,7 @@ ob_start();
             </div>
 
             <?php if (!empty($cat['children'])): ?>
-                <div class="sub-categories" style="margin-left:20px;">
+                <div class="sub-categories">
                     <?php renderCategories($cat['children']); ?>
                 </div>
             <?php endif; ?>
@@ -160,20 +163,28 @@ ob_start();
 
 <script>
 function generateId() {
-    const nameInput = document.getElementById('name');
-    const idInput = document.getElementById('id');
-    const name = nameInput.value.toLowerCase()
-        .replace(/ä/g, 'ae')
-        .replace(/ö/g, 'oe')
-        .replace(/ü/g, 'ue')
-        .replace(/ß/g, 'ss')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-    idInput.value = name;
+    const name = document.getElementById('name').value;
+
+    const id = name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/ä/g,'ae')
+        .replace(/ö/g,'oe')
+        .replace(/ü/g,'ue')
+        .replace(/ß/g,'ss')
+        .replace(/[^a-z0-9]+/g,'-')
+        .replace(/^-|-$/g,'');
+
+    document.getElementById('id').value = id;
 }
 document.getElementById('name').addEventListener('input', generateId);
 </script>
 
 <?php
 $content = ob_get_clean();
+if (!empty($messages)) {
+    $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
+}
+
 include '_layout.php';

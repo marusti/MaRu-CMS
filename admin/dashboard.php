@@ -99,11 +99,9 @@ return [
 
 }
 
-$latestVersion = check_for_updates();
-$cmsInfo = load_cms_info();
-
+// Warnung vorbereiten, gleiche Struktur wie vorher
+$phpWarning = '';
 if (!$phpVersionOk) {
-    $pageTitle = __('php_too_old');
     ob_start(); ?>
     <div class="card error">
         <h2><?= __('php_too_old') ?></h2>
@@ -111,10 +109,11 @@ if (!$phpVersionOk) {
         <p><?= __('php_current') ?> <?= PHP_VERSION ?></p>
     </div>
     <?php
-    $content = ob_get_clean();
-    include '_layout.php';
-    exit;
+    $phpWarning = ob_get_clean();
 }
+
+// Update-Check
+$latestVersion = check_for_updates();
 // Setze die Variable $currentUsers auf ein leeres Array als Fallback, falls sie nicht definiert ist
 $currentUsers = [];
 
@@ -135,7 +134,8 @@ $pageTitle = __('page_title');
 
 ob_start();
 ?>
-
+<!-- PHP-Warnung anzeigen, falls vorhanden -->
+<?= $phpWarning ?>
    <h1><?= sprintf(__('welcome'), htmlspecialchars($_SESSION['admin'])) ?></h1>
 
 <div class="dashboard"> 
@@ -189,16 +189,7 @@ ob_start();
 
 <?php elseif ($latestVersion): ?>
 
-    <li>
-        <strong><?= __('update_available') ?>:</strong>
-        <span class="status gray">
-            <?= htmlspecialchars($latestVersion) ?>
-        </span>
-    </li>
-
-<?php else: ?>
-
-    <li>
+        <li>
         <strong><?= __('update_available') ?>:</strong>
         <span class="status orange">
             <?= htmlspecialchars($latestVersion) ?>
@@ -225,7 +216,7 @@ ob_start();
     </section>
 
     <section class="server">
-    <div class="section-header"><?= __('server') ?></div>
+    <h2><?= __('server') ?></h2>
     <ul>
         <li>
             <strong><?= __('php_version') ?></strong> 

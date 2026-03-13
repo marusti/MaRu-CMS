@@ -132,10 +132,17 @@ if (isset($_GET['delete'])) {
     if (file_exists($jsonFile)) { unlink($jsonFile); $deleted = true; }
     if (file_exists($mdFile))   { unlink($mdFile);   $deleted = true; }
 
+    // Nachricht erstellen
+    $messages = [];
     if ($deleted) {
         addMessage($messages, sprintf(__('page_deleted_successfully'), htmlspecialchars($safeId)), 'success');
     } else {
         addMessage($messages, sprintf(__('page_not_found'), htmlspecialchars($safeId)), 'error');
+    }
+
+    // Nachrichten in die Session speichern
+    if (!empty($messages)) {
+        $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
     }
 
     header('Location: content_manager.php');
@@ -155,7 +162,8 @@ function renderCategoryPagesHtml(array $categoryNode, array $groupedPages, $leve
 
     if (isset($groupedPages[$categoryId])) {
         foreach ($groupedPages[$categoryId] as $index => $page) {
-            $html .= '<div class="page-entry entry-block">';
+            $html .= '<div class="page-entry entry-block list-item" '
+       . 'data-category="' . htmlspecialchars($page['category']) . '">';
             $html .= '<div class="cat-name">';
             $html .= '<span class="entry-name">' . htmlspecialchars($page['title']) . '</span>';
             $html .= '<small>(' . htmlspecialchars($page['id']) . ')</small>';
@@ -210,11 +218,39 @@ ob_start();
 
 <div id="content-manage">
     <h1><?= htmlspecialchars(__('manage_content')) ?></h1>
-    <label for="filter"><?= __('search_pages') ?>:</label>
-    <input type="search" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_pages_placeholder')) ?>">
-    <a href="edit_page.php" class="btn-create">➕ <?= htmlspecialchars(__('create_new_page')) ?></a>
-
+<?php var_dump($messages); ?>
+<h2><?= __('create_new_page') ?></h2>
+<div class="maru-card">
+    <a href="edit_page.php" class="button"><?= htmlspecialchars(__('create_new_page')) ?></a>
+</div>
     <h2><?= htmlspecialchars(__('existing_pages')) ?></h2>
+    <div class="maru-toolbar">
+    <div class="filter">
+        <label for="filter"><?= __('search_pages') ?>:</label>
+        <input type="search" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_pages_placeholder')) ?>">
+    </div>
+
+    <!-- Folder Filter -->
+    <div class="filter">
+        <label for="categoryFilter"><?= __('category') ?>:</label>
+        <select id="categoryFilter">
+            <option value="all"><?= __('all') ?></option>
+            <?php
+            $folders = [];
+            foreach ($groupedPages as $category => $pages) {
+                foreach ($pages as $page) {
+                    $folder = $page['category'] ?: 'uncategorized';
+                    $folders[$folder] = $folder;
+                }
+            }
+            ksort($folders, SORT_NATURAL | SORT_FLAG_CASE);
+            foreach ($folders as $folder) {
+                echo '<option value="' . htmlspecialchars($folder) . '">' . htmlspecialchars($folder) . '</option>';
+            }
+            ?>
+        </select>
+    </div>
+</div>
     <?= $allCategoriesHtml ?>
 
     <form method="post" id="deletePageForm" hidden>
@@ -224,5 +260,9 @@ ob_start();
 
 <?php
 $content = ob_get_clean();
+if (!empty($messages)) {
+    $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
+}
+
 include '_layout.php';
 ?>

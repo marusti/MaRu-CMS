@@ -316,14 +316,16 @@ if (file_exists($templatePath)) {
     $output = str_replace('{{menu}}', $menuHtml, $output);
 
     /* ARTICLE SCHEMA */
-    if (!empty($pageDefaultImage)) {
-        $pageDefaultImage = preg_replace('#^\.\./#', $baseUrl . '/', $pageDefaultImage);
-        $altText = !empty($pageDefaultImageAlt) ? htmlspecialchars($pageDefaultImageAlt, ENT_QUOTES, 'UTF-8') : 'Artikelbild';
+if (!empty($pageDefaultImage)) {
+    // Pfad korrekt zusammensetzen
+    $pageDefaultImageUrl = rtrim($baseUrl, '/') . '/uploads/media/images/' . $pageDefaultImage;
 
-        $imageHtml = '<img class="page-defaultimg" src="' . htmlspecialchars($pageDefaultImage, ENT_QUOTES, 'UTF-8') . '" alt="' . $altText . '" itemprop="image" />';
-    } else {
-        $imageHtml = '';
-    }
+    $altText = !empty($pageDefaultImageAlt) ? htmlspecialchars($pageDefaultImageAlt, ENT_QUOTES, 'UTF-8') : 'Artikelbild';
+
+    $imageHtml = '<img class="page-defaultimg" src="' . htmlspecialchars($pageDefaultImageUrl, ENT_QUOTES, 'UTF-8') . '" alt="' . $altText . '" itemprop="image" />';
+} else {
+    $imageHtml = '';
+}
 
     $articleContent = '<article itemscope itemtype="https://schema.org/Article">
         <header class="article-header">

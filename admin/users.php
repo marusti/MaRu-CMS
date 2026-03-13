@@ -27,7 +27,6 @@ $currentUser = $_SESSION['admin'];
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
-
 // Zentrale Messages
 $messages = [];
 
@@ -43,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         die('Invalid CSRF token');
     }
-
     // === User erstellen ===
     if (isset($_POST['create_user'])) {
         $username = trim($_POST['username'] ?? '');
@@ -68,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 addMessage($messages, sprintf(__('user_created'), $username), 'success');
             }
         }
-
     // === User löschen ===
     } elseif (isset($_POST['delete_user'])) {
         $username = $_POST['delete_user'];
@@ -80,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 addMessage($messages, sprintf(__('user_deleted'), $username), 'success'); // <-- hier Username einfügen
         }
         }
-
     // === Passwort ändern ===
     } elseif (isset($_POST['change_password'])) {
         $username = $_POST['change_user'];
@@ -125,15 +121,9 @@ ob_start();
 ?>
 
 <h1><?= __('manage_users') ?></h1>
-
-<!-- Search filter -->
-<label for="filter"><?= __('search_user') ?>:</label>
-<input  type="text" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_user_placeholder')) ?>">
-
 <?php if ($users[$currentUser]['role'] !== 'editor'): ?>
-
 <h2><?= __('create_user') ?></h2>
-<form method="post" name="create_user_form" class="maru-card create-card" novalidate aria-label="Create new user">
+<form method="post" name="create_user_form" class="maru-card create-card" novalidate aria-label="<?= __('create_user') ?>">
     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
     <div>
         <label for="username"><?= __('username') ?>:</label>
@@ -161,9 +151,25 @@ ob_start();
 <?php endif; ?>
 
 <h2><?= __('existing_users') ?></h2>
+<!-- Search filter -->
+<div class="maru-toolbar">
+<div class="filter">
+<label for="filter"><?= __('search_user') ?>:</label>
+<input  type="text" id="filter" class="admin-search" placeholder="<?= htmlspecialchars(__('search_user_placeholder')) ?>">
+</div>
+<div class="type-filter">
+<label for="roleFilter"><?= __('role') ?>:</label>
+
+<select id="roleFilter">
+    <option value="all">Alle Rollen</option>
+    <option value="admin"><?= __('admin') ?></option>
+    <option value="editor"><?= __('editor') ?></option>
+</select>
+</div>
+</div>
 <div class="maru-list users-list">
 <?php foreach ($users as $username => $info): ?>
-    <div class="entry-block user-card" aria-label="User <?= htmlspecialchars($username) ?> with role <?= htmlspecialchars($info['role']) ?>">
+    <div class="entry-block list-item" aria-label="User <?= htmlspecialchars($username) ?> with role <?= htmlspecialchars($info['role']) ?>" data-role="<?= htmlspecialchars($info['role']) ?>">
         <div class="user-info">
             <span class="entry-name"><?= htmlspecialchars($username) ?></span>
             <span class="role"><?= htmlspecialchars($info['role']) ?></span>
@@ -206,27 +212,13 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     }
 
- /*   document.querySelectorAll('.change-password-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const newPwd = form.querySelector('input[name="new_password"]').value;
-            const confirmPwd = form.querySelector('input[name="confirm_new_password"]').value;
-
-            if (newPwd !== confirmPwd) {
-                e.preventDefault();
-                showErrorModal('Passwörter stimmen nicht überein.');
-                return;
-            }
-
-            if (!validatePassword(newPwd)) {
-                e.preventDefault();
-                showErrorModal('Passwort muss mindestens 8 Zeichen lang sein, einen Großbuchstaben und eine Zahl enthalten und darf keine Sonderzeichen enthalten.');
-            }
-        });
-    });*/
 });
 </script>
 
 <?php
 $content = ob_get_clean();
+if (!empty($messages)) {
+    $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
+}
 include '_layout.php';
 ?>

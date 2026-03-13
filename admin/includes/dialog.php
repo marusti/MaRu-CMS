@@ -1,10 +1,10 @@
 <!-- Vorschau-Dialog -->
 <dialog id="imagePreviewDialog"
         class="modal"
-        aria-labelledby="modalTitle"  
+        aria-labelledby="imagePreviewTitle"  
         aria-describedby="previewModalMessage">
 
-    <div id="modalTitle"><?= __('preview') ?></div>  <!-- Ensure this matches -->
+    <div id="imagePreviewTitle" class="dialog-title"><?= __('preview') ?></div>  <!-- Ensure this matches -->
 
     <div class="dialog-content">
         <div class="image-container">
@@ -40,27 +40,28 @@
 <!-- Lösch-Bestätigungsdialog -->
 <dialog id="deleteModal"
         class="modal"
-        aria-labelledby="modalTitle"
+        aria-labelledby="deleteTitle"
         aria-describedby="modalMessage">
 
-    <div id="modalTitle"><?= __('delete') ?></div>
+    <div id="deleteTitle" class="dialog-title"><?= __('delete') ?></div>
 
     <div class="dialog-content">
         <p id="modalMessage"><?= __('delete_confirm_generic') ?></p>
     </div>
 
+<div class="dialog-buttons">
     <button id="modalConfirm" type="button"><?= __('yes') ?></button>
     <button id="modalCancel" type="button"><?= __('no') ?></button>
-
+</div>
     <button type="button" class="maru-close" aria-label="<?= __('close') ?>">x</button>
 </dialog>
 
 <!-- Generischer Formular-Dialog -->
 <dialog id="formModal"
         class="modal"
-        aria-labelledby="modalTitle">
+        aria-labelledby="formTitle">
 
-    <div id="modalTitle"><?= __('form_title') ?></div>  <!-- Add meaningful content here -->
+    <div id="formTitle" class="dialog-title"><?= __('form_title') ?></div>  <!-- Add meaningful content here -->
 
     <div class="dialog-content" id="formModalContent">
         <!-- Wird dynamisch gefüllt -->
@@ -70,8 +71,8 @@
 </dialog>
 
 <!-- Media-Dialog -->
-<dialog id="mediaModal" class="modal" aria-labelledby="modalTitle" aria-describedby="mediaModalMessage">
-    <div id="modalTitle"><?= __('select_image') ?></div>
+<dialog id="mediaModal" class="modal" aria-labelledby="mediaTitle" aria-describedby="mediaModalMessage">
+    <div id="mediaTitle" class="dialog-title"><?= __('select_image') ?></div>
 
     <!-- Neue Beschreibung für den Dialog -->
     <div id="mediaModalMessage" class="sr-only"><?= __('select_image_description') ?></div>

@@ -3,6 +3,7 @@ require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/assets/icons/icons.php'; 
 
 $pageHasEditor = true;
+$pageHasDialog = true;
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
@@ -219,7 +220,7 @@ ob_start();
             </div>
         </div>
     </div>
-
+</div>
     <!-- TAB: SEO -->
     <div id="tab-seo" class="tab-content">
         <label><?= __('meta_description') ?>:
@@ -243,7 +244,7 @@ ob_start();
     <!-- TAB: Default Image -->
     <div id="tab-image" class="tab-content">
     <label><?= __('default_image_url') ?>:
-        <input type="text" id="default_image" name="default_image" value="<?= htmlspecialchars($data['default_image']) ?>">
+        <input type="hidden" id="default_image" name="default_image" value="<?= htmlspecialchars($data['default_image']) ?>">
         <!-- Verwende das Ordnersymbol aus der getIcon-Funktion -->
         <button type="button" id="selectImageBtn">
             <?php echo getIcon('folder'); ?> <!-- SVG Ordnersymbol -->
@@ -255,7 +256,9 @@ ob_start();
     </label>
 
     <div style="margin-top:10px;">
-        <img id="imagePreview" src="<?= htmlspecialchars($data['default_image']) ?>" style="max-width:100%; max-height:200px; <?= empty($data['default_image'])?'display:none;':'' ?>">
+        <img id="imagePreview"
+     src="<?= !empty($data['default_image']) ? htmlspecialchars($settings['base_url'] . '/uploads/media/images/' . $data['default_image']) : '' ?>"
+     style="max-width:100%; max-height:200px; <?= empty($data['default_image'])?'display:none;':'' ?>">
     </div>
 </div>
 
@@ -370,19 +373,20 @@ document.getElementById('selectImageBtn').addEventListener('click', () => {
             const imageInput = document.getElementById('default_image');
             const imagePreview = document.getElementById('imagePreview');
 
-            imageInput.value = src;
-            imagePreview.src = src;
-            imagePreview.style.display = 'block';
+           const fileName = src.split('/').pop();
+
+imageInput.value = fileName;
+imagePreview.src = baseUrl + '/uploads/media/images/' + fileName;
+imagePreview.style.display = 'block';
         }
     );
 
 });
-
-
-
-
 </script>
 
 <?php
 $content = ob_get_clean();
+if (!empty($messages)) {
+    $_SESSION['messages'] = array_merge($_SESSION['messages'] ?? [], $messages);
+}
 include '_layout.php';

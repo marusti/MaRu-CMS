@@ -5,8 +5,18 @@ error_reporting(E_ALL);
 session_start();
 require_once __DIR__ . '/init.php'; // Hier wird __() geladen
 
-define('MAX_LOGIN_ATTEMPTS', 3);
-define('LOCKOUT_DURATION', 600);
+function getLockoutDuration($attempts) {
+    if ($attempts >= 15) {
+        return 604800; // 7 Tage
+    } elseif ($attempts >= 10) {
+        return 86400; // 24 Stunden
+    } elseif ($attempts >= 6) {
+        return 1800; // 30 Minuten
+    } elseif ($attempts >= 3) {
+        return 600; // 10 Minuten
+    }
+    return 0;
+}
 
 $usersFile = __DIR__ . '/../config/users.json';
 $failedLoginsFile = __DIR__ . '/../config/failed_logins.json';
@@ -28,8 +38,20 @@ $error = '';
 $lockActive = false;
 
 if (isset($failedLogins[$ip]) && isset($failedLogins[$ip]['locked_until']) && time() < $failedLogins[$ip]['locked_until']) {
+
     $lockActive = true;
-    $error = __('too_many_attempts');
+
+    $remaining = $failedLogins[$ip]['locked_until'] - time();
+
+    if ($remaining >= 86400) {
+        $timeText = sprintf(__('time_days'), ceil($remaining / 86400));
+    } elseif ($remaining >= 3600) {
+        $timeText = sprintf(__('time_hours'), ceil($remaining / 3600));
+    } else {
+        $timeText = sprintf(__('time_minutes'), ceil($remaining / 60));
+    }
+
+    $error = sprintf(__('too_many_attempts'), $timeText);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$lockActive) {
@@ -68,12 +90,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$lockActive) {
         if (!isset($failedLogins[$ip])) $failedLogins[$ip] = ['failed_attempts' => 1, 'locked_until' => 0];
         else $failedLogins[$ip]['failed_attempts']++;
 
-        if ($failedLogins[$ip]['failed_attempts'] >= MAX_LOGIN_ATTEMPTS) {
-            $failedLogins[$ip]['locked_until'] = time() + LOCKOUT_DURATION;
-            $error = __('too_many_attempts');
-        } else {
-            $error = __('invalid_credentials');
-        }
+        $attempts = $failedLogins[$ip]['failed_attempts'];
+$lockTime = getLockoutDuration($attempts);
+
+if ($lockTime > 0) {
+
+    $failedLogins[$ip]['locked_until'] = time() + $lockTime;
+
+    $remaining = $lockTime;
+
+    if ($remaining >= 86400) {
+        $timeText = sprintf(__('time_days'), ceil($remaining / 86400));
+    } elseif ($remaining >= 3600) {
+        $timeText = sprintf(__('time_hours'), ceil($remaining / 3600));
+    } else {
+        $timeText = sprintf(__('time_minutes'), ceil($remaining / 60));
+    }
+
+    $error = sprintf(__('too_many_attempts'), $timeText);
+
+} else {
+
+    $error = __('invalid_credentials');
+
+}
 
         file_put_contents($failedLoginsFile, json_encode($failedLogins, JSON_PRETTY_PRINT), LOCK_EX);
     }

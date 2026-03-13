@@ -1,10 +1,16 @@
 <?php
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/includes/messages.php';
+
+$messages = []; // zentrale Message-Liste
 
 /* =========================
    CSRF-Helfer
    ========================= */
 function csrf_token(): string {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
     return $_SESSION['csrf_token'];
 }
 
@@ -27,7 +33,6 @@ if (!isset($_SESSION['admin'])) {
 $pageTitle = __('settings');
 $configFile = __DIR__ . '/../config/settings.json';
 $pagesBaseDir = __DIR__ . '/../content/pages';
-$message = '';
 
 /* =========================
    Einstellungen laden
@@ -35,6 +40,10 @@ $message = '';
 $settings = file_exists($configFile)
     ? json_decode(file_get_contents($configFile), true)
     : [];
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    $settings = [];
+}
 
 $settingsOld = $settings; // 🔑 für Change-Detection
 
@@ -66,12 +75,10 @@ unset($pages);
    ========================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (
-        !isset($_POST['csrf_token']) ||
-        !csrf_valid($_POST['csrf_token'])
-    ) {
-        $message = __('csrf_error') ?: 'Ungültiger CSRF-Token!';
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?saved=1&msg=' . urlencode($message));
+    if (!isset($_POST['csrf_token']) || !csrf_valid($_POST['csrf_token'])) {
+        addMessage($messages, __('csrf_error') ?: 'Ungültiger CSRF-Token!', 'error');
+        $_SESSION['messages'] = $messages;
+        header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     }
 
@@ -82,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['maintenance'] = isset($_POST['maintenance']);
     $settings['generate_sitemap'] = isset($_POST['generate_sitemap']);
     $settings['mod_rewrite'] = isset($_POST['mod_rewrite']);
-  $settings['content_languages'] = $_POST['content_languages'] ?? '';
+    $settings['content_languages'] = $_POST['content_languages'] ?? '';
 
     /* --- Base URL dynamisch --- */
     $scheme = (
@@ -96,12 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['base_url'] = $scheme . '://' . $_SERVER['HTTP_HOST'] . $basePath;
 
     /* --- settings.json schreiben --- */
-    file_put_contents(
-        $configFile,
-        json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-    );
+    if (!file_put_contents($configFile, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+        addMessage($messages, 'Fehler beim Schreiben der settings.json!', 'error');
+        $_SESSION['messages'] = $messages;
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
 
-    $message = __('settings_saved');
+    addMessage($messages, __('settings_saved'), 'success');
 
     /* =========================
        .htaccess
@@ -130,8 +139,9 @@ RewriteRule ^(.*)$ index.php?page=$1 [QSA,L]
 
 HTACCESS;
 
-
-        file_put_contents($htaccessFile, $htaccessContent);
+        if (!file_put_contents($htaccessFile, $htaccessContent)) {
+            addMessage($messages, 'Fehler beim Schreiben der .htaccess!', 'error');
+        }
     } elseif (file_exists($htaccessFile)) {
         unlink($htaccessFile);
     }
@@ -139,12 +149,7 @@ HTACCESS;
     /* =========================
        Sitemap: nur bei relevanten Änderungen
        ========================= */
-    $sitemapRelevantKeys = [
-        'homepage',
-        'mod_rewrite',
-        'generate_sitemap',
-    ];
-
+    $sitemapRelevantKeys = ['homepage', 'mod_rewrite', 'generate_sitemap'];
     $sitemapNeedsUpdate = false;
     foreach ($sitemapRelevantKeys as $key) {
         if (($settingsOld[$key] ?? null) !== ($settings[$key] ?? null)) {
@@ -157,9 +162,7 @@ HTACCESS;
     $sitemapDir = dirname($sitemapFile);
 
     if ($sitemapNeedsUpdate && is_writable($sitemapDir)) {
-
         if ($settings['generate_sitemap']) {
-
             $entries = [];
             $cmsBaseUrl = rtrim($settings['base_url'], '/');
 
@@ -194,38 +197,28 @@ HTACCESS;
             $sitemap .= "\n</urlset>";
 
             file_put_contents($sitemapFile, $sitemap);
-            $message .= ' – ' . __('sitemap_created');
+            addMessage($messages, __('sitemap_created'), 'success');
 
         } elseif (file_exists($sitemapFile)) {
             unlink($sitemapFile);
-            $message .= ' – ' . __('sitemap_deleted');
+            addMessage($messages, __('sitemap_deleted'), 'info');
         }
     }
 
-    // CSRF rotieren (optional, aber sauber)
+    // CSRF rotieren
     unset($_SESSION['csrf_token']);
 
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?saved=1&msg=' . urlencode($message));
-    exit;
-}
+    // Alle Messages in Session speichern für Redirect
+    $_SESSION['messages'] = $messages;
 
-/* =========================
-   GET: Message
-   ========================= */
-if (isset($_GET['saved'])) {
-    $message = !empty($_GET['msg'])
-        ? htmlspecialchars($_GET['msg'], ENT_QUOTES, 'UTF-8')
-        : __('settings_saved');
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
 }
 
 ob_start();
 ?>
 
 <h1><?= __('settings') ?></h1>
-
-<?php if ($message): ?>
-    <p style="color: green;"><?= htmlspecialchars($message) ?></p>
-<?php endif; ?>
 
 <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
@@ -310,10 +303,10 @@ ob_start();
     </div>
 </fieldset>
 
-
     <button type="submit"><?= __('save') ?></button>
 </form>
 
 <?php
 $content = ob_get_clean();
 include '_layout.php';
+?>

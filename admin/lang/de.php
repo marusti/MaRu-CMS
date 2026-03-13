@@ -1,17 +1,35 @@
 <?php
 return [
 
+//Allgemein
+    'active' => 'Aktiv',
+    'author' => 'Autor',
 'yes' => 'Ja',
 'no' => 'Nein',
+'none' => 'keine',
+'all' => 'Alle',
+    'cancel' => 'Abbrechen',
+    'csrf_error' => 'Ungültiger Sicherheits-Token. Bitte Formular erneut absenden.',
+    'edit' => 'Bearbeiten',
+    'delete' => 'Löschen',
+    'upload' => 'Hochladen',
+    'language' => 'Sprache',
+    'save' => 'Speichern',
+        'password' => 'Passwort',
+    'preview' => 'Vorschau',
+    'username' => 'Benutzername',
+    'warning' => 'Warnung',
 
 'go_to_page' => 'Gehe zu Seite',
 
+//Login
     'login_title' => 'Login',
-    'username' => 'Benutzername',
-    'password' => 'Passwort',
     'login' => 'Einloggen',
     'invalid_credentials' => 'Ungültiger Benutzername oder Passwort.',
-    'too_many_attempts' => 'Zu viele fehlerhafte Versuche. Bitte warten Sie 10 Minuten.',
+    'too_many_attempts' => 'Zu viele fehlerhafte Versuche. Bitte warten Sie %s.',
+'time_minutes' => '%d Minuten',
+'time_hours' => '%d Stunden',
+'time_days' => '%d Tage',
     'show_hide_password' => 'Passwort anzeigen oder verbergen',
     'enter_username_description' => 'Geben Sie Ihren Benutzernamen ein.',
     'enter_password_description' => 'Geben Sie Ihr Passwort ein.',
@@ -33,13 +51,12 @@ return [
     'templates' => 'Templates',
     'plugins' => 'Plugins',
     'logout' => 'Logout',
-    'preview' => 'Vorschau',
 'maintenance_active_note' => 'Hinweis',
     'maintenance_active' => 'Der Wartungsmodus ist aktiviert. Die Webseite ist für Besucher derzeit nicht verfügbar.',
     'admin_dashboard' => 'Admin Dashboard',
     'theme_toggle' => 'Wechsel zwischen hellem und dunklem Modus',
     'toggle_sidebar' => 'Menü ein-/ausklappen',
-    'language' => 'Sprache',
+
     
         'page_title' => 'Dashboard',
     'welcome' => 'Willkommen, %s 👋',
@@ -65,7 +82,7 @@ return [
     'php_required' => 'Dieses CMS benötigt mindestens PHP %s.',
      'currently_logged_in_users' => 'Aktuell eingeloggte Benutzer',
     
-'warning' => 'Warnung',
+
 'base_url_mismatch' => 'Gespeicherte Basis-URL stimmt nicht mit der aktuellen Basis-URL überein!',
 'update_base_url_to_current' => 'Basis-URL auf aktuelle URL setzen',
 'error_writing_settings' => 'Fehler beim Speichern der Einstellungen!',
@@ -73,23 +90,20 @@ return [
     
         'manage_content' => 'Inhalte verwalten',
     'manage_categories' => 'Kategorien verwalten',
-    'name' => 'Name',
     'id_auto' => 'ID wird automatisch generiert',
-    'add_category' => 'Kategorie hinzufügen',
-    'existing_categories' => 'Vorhandene Kategorien',
+    'add_category' => 'Neue Kategorie erstellen',
+    'existing_categories' => 'Bestehende Kategorien',
     'rename' => 'Umbenennen',
 'delete_category' => 'Kategorie löschen',
     'delete_category_confirm' => 'Kategorie löschen? Seiten bleiben erhalten.',
     'pages' => 'Seiten',
     'create_new_page' => 'Neue Seite erstellen',
-    'edit' => 'Bearbeiten',
 'delete_page' => 'Seite löschen',
 
         'status_published' => 'Veröffentlicht',
     'status_draft' => 'Entwurf',
 'default_image' => 'Artikelbild',
 
-    'category_created_successfully' => 'Kategorie wurde erfolgreich erstellt.',
     'category_creation_failed' => 'Fehler beim Erstellen der Kategorie.',
     'page_created_successfully' => 'Seite wurde erfolgreich erstellt.',
     'page_creation_failed' => 'Fehler beim Erstellen der Seite.',
@@ -108,11 +122,13 @@ return [
     'category_creation_failed' => 'Fehler beim Erstellen oder Bearbeiten der Kategorie "%s". Bitte versuchen Sie es erneut.',
     'category_deleted_successfully' => 'Kategorie "%s" wurde erfolgreich gelöscht.',
     'category_deletion_failed' => 'Fehler beim Löschen der Kategorie "%s". Bitte versuchen Sie es erneut.',
+    'parent_category' => 'Übergeordnete Kategorie',
 
     
          'edit_page' => 'Seite bearbeiten',
     'create_page' => 'Seite erstellen',
     'existing_pages' => 'Vorhandene Seiten',
+     'page_deleted_successfully' => 'Seite "%s" wurde erfolgreich gelöscht.',
     'title' => 'Titel',
     'id' => 'ID',
     'category' => 'Kategorie',
@@ -148,13 +164,11 @@ return [
     'page_selector' => 'Seite auswählen',
     'insert' => 'Einfügen',
     'insert_link' => 'Link einfügen',
-    'save' => 'Speichern',
     'save_close' => 'Speichern und Schließen',
-    'cancel' => 'Abbrechen',
-    'preview' => 'Vorschau',
+
     'please_select_plugin' => 'Bitte ein Plugin auswählen',
     
-        'manage_files' => 'Dateien verwalten',
+        'manage_files' => 'Mediamanager',
     'upload_files' => 'Dateien hochladen',
     'existing_files' => 'Dateien im Verzeichnis',
     'delete_selected' => 'Ausgewählte löschen',
@@ -173,15 +187,10 @@ return [
     'caption' => 'Bildunterschrift',
 'caption_placeholder' => 'Bildunterschrift eingeben',
     
-    'select_image' => 'Bild auswählen',
-    'image_preview' => 'Bild Vorschau',
-    
-    
+    //Benutzer
     'manage_users' => 'Benutzer verwalten',
     'create_user' => 'Neuen Benutzer erstellen',
     'existing_users' => 'Bestehende Benutzer',
-    'username' => 'Benutzername',
-    'password' => 'Passwort',
     'confirm_password' => 'Passwort bestätigen',
     'new_password' => 'Neues Passwort',
     'role' => 'Rolle',
@@ -200,8 +209,8 @@ return [
     'editor_change_own_password_only' => 'Editor darf nur das eigene Passwort ändern.',
     'password_mismatch' => 'Die Passwörter stimmen nicht überein.',
 
-    'cancel' => 'Abbrechen',
-    
+
+    //Einstellungen
         'settings' => 'Einstellungen',
     'settings_saved' => 'Einstellungen erfolgreich gespeichert.',
     'sitemap_created' => 'Sitemap erfolgreich erstellt.',
@@ -211,13 +220,11 @@ return [
 
     'homepage_language' => 'Startseite & Sprache',
     'choose_homepage' => 'Startseite wählen',
-    'language' => 'Sprache',
     'german' => 'Deutsch',
     'english' => 'Englisch',
     'system' => 'System',
     'enable_maintenance' => 'Baustellenmodus aktivieren',
     'cms_version' => 'CMS-Version',
-    'save' => 'Speichern',
     'create_sitemap' => 'Sitemap erstellen',
     'url_settings' =>  'URL-Einstellungen',
 'enable_mod_rewrite' => 'mod_rewrite aktivieren (saubere URLs)',
@@ -228,16 +235,14 @@ return [
 'error_sitemap_dir_not_writable' => 'Das Verzeichnis für die Sitemap ist nicht schreibbar.',
 'error_sitemap_write_failed' => 'Fehler beim Schreiben der Sitemap.',
 'error_sitemap_delete_failed' => 'Fehler beim Löschen der Sitemap.',
-'sitemap_created' => 'Sitemap erfolgreich erstellt.',
 'sitemap_deleted' => 'Sitemap wurde gelöscht.',
 'settings_saved' => 'Einstellungen wurden gespeichert.',
 
 'error_htaccess_write_failed' => 'Fehler: .htaccess konnte nicht geschrieben werden.',
-'error_htaccess_delete_failed' => 'Fehler: .htaccess konnte nicht gelöscht werden.',
-
-'csrf_error' => 'Ungültiger Sicherheits-Token. Bitte Formular erneut absenden.',
-    
+'error_htaccess_delete_failed' => 'Fehler: .htaccess konnte nicht gelöscht werden.',    
+    //Templates
         'template_manage' => 'Templates verwalten',
+        'existing_templates' => 'Bestehende Templates',
     'template_deleted' => 'Template "%s" wurde gelöscht.',
     'template_activated' => 'Template "%s" wurde aktiviert.',
     'template_installed' => 'Template "%s" wurde installiert.',
@@ -246,17 +251,13 @@ return [
     'zip_only' => 'Bitte nur ZIP-Dateien hochladen.',
     'no_description' => 'Keine Beschreibung vorhanden.',
     'template_uploaded' => 'Template "%s" wurde installiert.',
-    'upload' => 'Hochladen',
-    'preview' => 'Vorschau',
-    'active' => 'Aktiv',
+
     'show_details' => 'Details anzeigen',
-    'edit' => 'Bearbeiten',
-    'delete' => 'Löschen',
+
 
     'activate_selected' => 'Ausgewähltes Template aktivieren',
     'template_already_exists_versions' => 'Template "%s" existiert bereits (installierte Version: %s, hochgeladene Version: %s)',
 'no_version_info' => 'keine Versionsangabe',
-
 
 'select_template' => 'Template auswählen',
 
@@ -279,27 +280,24 @@ return [
     'zip_write_block_error' => 'Fehler beim Schreiben der Zieldatei.',
     'zip_success' => 'ZIP erfolgreich extrahiert.',
 
+    //Plugins
     
-    
-        'plugin_manager' => 'Plugin-Verwaltung',
+        'plugin_manager' => 'Plugins verwalten',
+        'existing_plugins' => 'Bestehende Plugins',
     'plugin_settings_saved' => 'Plugin-Einstellungen wurden gespeichert.',
     'install_plugin' => 'Installieren',
-    'save' => 'Speichern',
+
 'save_success' => 'Änderungen erfolgreich gespeichert.',
     'upload_instruction' => 'Datei hierher ziehen oder klicken',
-    'plugin_installed_success' => 'Plugin erfolgreich installiert.',
+    'plugin_installed_success' => 'Plugin "%s" erfolgreich installiert.',
     'upload_failed' => 'Upload fehlgeschlagen.',
     'only_zip_allowed' => 'Nur ZIP-Dateien erlaubt.',
-    'plugin_deleted' => 'Plugin gelöscht.',
-    'plugin_delete_confirm' => 'Plugin "%s" wirklich löschen?',
+    'plugin_deleted' => 'Plugin "%s" wurde gelöscht.',
+ //   'plugin_delete_confirm' => 'Plugin "%s" wirklich löschen?',
     'error' => 'Fehler',
     'description' => 'Beschreibung',
-    'settings' => 'Einstellungen',
-    'delete' => 'Löschen',
     'select_zip_first' => 'Bitte eine ZIP-Datei auswählen.',
-      'select_plugins_to_activate' => 'Plugins auswählen',
-
-      
+      'select_plugins_to_activate' => 'Plugins auswählen',      
       
  // === Zentrale Delete-Messages mit Platzhalter für dynamische Namen ===
     'delete_confirm_user' => 'Benutzer "%s" wirklich löschen?',
@@ -315,6 +313,8 @@ return [
 'update_no_version_found' => 'Fehler: Keine Versionsnummer in der cms.json gefunden!',
 
 // search
+'search_cat' => 'Kategorie suchen',
+'search_cat_placeholder' => 'Name einer Kategorie eingeben...',
 'search_files' => 'Dateien suchen',
 'search_files_placeholder' => 'Name einer Datei eingeben...',
 'search_pages' => 'Seiten suchen',
@@ -323,6 +323,6 @@ return [
 'search_templates_placeholder' => 'Template-Name oder Beschreibung eingeben...',
       'search_plugins' => 'Plugins suchen',
       'search_plugins_placeholder' => 'Name eines Plugins eingeben...',
-
-    
+'search_user' => 'Benutzer suchen',
+      'search_user_placeholder' => 'Name eines Benutzers eingeben...',    
 ];
